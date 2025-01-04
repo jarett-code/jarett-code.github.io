@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Werewolf</title>
+    <script>
+        const roles = ["werewolf", "villager", "seer", "tracker", "saint", "gossip", "minion", "astrologer"];
+        let players = [];
+
+        function getQueryParams() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('role');
+        }
+
+        function loadPlayersFromLocalStorage() {
+            const storedPlayers = JSON.parse(localStorage.getItem('players'));
+            if (storedPlayers) {
+                players = storedPlayers;
+            }
+        }
+
+        function assignRole(role) {
+            for (let player of players) {
+                if (!player.role) {
+                    player.role = role;
+                    break;
+                }
+            }
+            savePlayersToLocalStorage();
+            updatePlayerList();
+            checkAllRolesAssigned();
+        }
+
+        function savePlayersToLocalStorage() {
+            localStorage.setItem('players', JSON.stringify(players));
+        }
+
+        function updatePlayerList() {
+            const playerList = document.getElementById('playerList');
+            playerList.innerHTML = '';
+            players.forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = player.name + (player.role ? ' - Role assigned' : '');
+                playerList.appendChild(li);
+            });
+        }
+
+        function checkAllRolesAssigned() {
+            const allAssigned = players.every(player => player.role);
+            if (allAssigned) {
+                window.location.href = 'gameplay.html';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            loadPlayersFromLocalStorage();
+            const role = getQueryParams();
+            if (roles.includes(role)) {
+                assignRole(role);
+                console.log('Role assigned:', role);
+            }
+            updatePlayerList();
+        });
+    </script>
+</head>
+<body>
+    <h1>The inn keeper</h1>
+    <p>Welcome to the inn!</p>
+    <ol id="playerList"></ol>
+</body>
+</html>

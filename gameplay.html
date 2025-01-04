@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Werewolf</title>
+    <script>
+        function loadPlayersFromLocalStorage() {
+            const storedPlayers = JSON.parse(localStorage.getItem('players'));
+            if (storedPlayers) {
+                updatePlayerList(storedPlayers);
+            }
+        }
+
+        function updatePlayerList(players) {
+            const playerList = document.getElementById('playerList');
+            playerList.innerHTML = '';
+            players.forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = player.name;
+                playerList.appendChild(li);
+            });
+        }
+
+        function endGame() {
+            const storedPlayers = JSON.parse(localStorage.getItem('players'));
+            if (storedPlayers) {
+                const resetPlayers = storedPlayers.map(player => ({ ...player, role: '' }));
+                localStorage.setItem('players', JSON.stringify(resetPlayers));
+            }
+            window.location.href = 'setup.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            loadPlayersFromLocalStorage();
+        });
+    </script>
+</head>
+<body>
+    <h1>The inn keeper</h1>
+    <p>The game is in progress...</p>
+    <ol id="playerList"></ol>
+    <button onclick="endGame()">End Game</button>
+</body>
+</html>

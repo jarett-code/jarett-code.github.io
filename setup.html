@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Werewolf</title>
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script>
+        let players = [];
+
+        function addPlayer(event) {
+            event.preventDefault();
+            const playerName = document.getElementById('playerName').value;
+            if (playerName) {
+                players.push({ name: playerName, role: '' });
+                document.getElementById('playerName').value = '';
+                updatePlayerList();
+                savePlayersToLocalStorage();
+            }
+        }
+
+        function updatePlayerList() {
+            const playerList = document.getElementById('playerList');
+            playerList.innerHTML = '';
+            players.forEach((player, index) => {
+                const li = document.createElement('li');
+                li.textContent = player.name;
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Remove';
+                removeButton.onclick = () => removePlayer(index);
+
+                li.appendChild(removeButton);
+                playerList.appendChild(li);
+            });
+        }
+
+        function removePlayer(index) {
+            players.splice(index, 1);
+            updatePlayerList();
+            savePlayersToLocalStorage();
+        }
+
+        function savePlayersToLocalStorage() {
+            localStorage.setItem('players', JSON.stringify(players));
+        }
+
+        function loadPlayersFromLocalStorage() {
+            const storedPlayers = JSON.parse(localStorage.getItem('players'));
+            if (storedPlayers) {
+                players = storedPlayers;
+                updatePlayerList();
+            }
+        }
+
+        function startGame(event) {
+            event.preventDefault();
+            document.getElementById('playerForm').style.display = 'none';
+            document.getElementById('start-game').style.display = 'none';
+            document.getElementById('readyMessage').style.display = 'block';
+            document.querySelectorAll('#playerList button').forEach(button => {
+                button.classList.add('hidden');
+            });
+        }
+
+        function clearGame() {
+            localStorage.removeItem('players');
+            // Refresh the page
+            window.location.href = 'setup.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            loadPlayersFromLocalStorage();
+        });
+    </script>
+</head>
+<body>
+    <h1>The inn keeper</h1>
+    <form id="playerForm" onsubmit="addPlayer(event)">
+        <label for="playerName">Enter player name:</label>
+        <input type="text" id="playerName" required>
+        <button type="submit">Add Player</button>
+    </form>
+    <ol id="playerList"></ol>
+    <hr>
+    <a href="scan_roles.html" id="start-game" onclick="startGame(event)">Start the game</a>
+    <div id="readyMessage" style="display:none;">
+        <p><strong>Scan the player cards!</strong></p>
+        <p>Begin with player 1 and continue in order.</p>
+    </div>
+    <br>
+    <br>
+    <button id="clear-game" onclick="clearGame()">Reset all</button>
+</body>
+</html>
