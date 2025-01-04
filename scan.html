@@ -28,6 +28,7 @@
             savePlayersToLocalStorage();
             updatePlayerList();
             checkAllRolesAssigned();
+            window.location.href = 'next_player_to_scan.html';
         }
 
         function savePlayersToLocalStorage() {
@@ -39,7 +40,7 @@
             playerList.innerHTML = '';
             players.forEach(player => {
                 const li = document.createElement('li');
-                li.textContent = player.name + (player.role ? ' - Role assigned' : '');
+                li.textContent = player.name + (player.role ? ' - Role assigned' : ' - No role assigned');
                 playerList.appendChild(li);
             });
         }
