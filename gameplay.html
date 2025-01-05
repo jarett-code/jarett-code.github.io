@@ -26,18 +26,30 @@
                 const resetPlayers = storedPlayers.map(player => ({ ...player, role: '' }));
                 localStorage.setItem('players', JSON.stringify(resetPlayers));
             }
+            localStorage.removeItem('gameStarted');
             window.location.href = 'setup.html';
+        }
+
+        function checkGameStartConditions() {
+            const players = JSON.parse(localStorage.getItem('players'));
+            if (players && players.every(player => player.role)) {
+                localStorage.setItem('gameStarted', 'true');
+            } else {     
+                window.location.href = 'setup.html';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', (event) => {
             loadPlayersFromLocalStorage();
+            checkGameStartConditions();
         });
     </script>
 </head>
 <body>
     <h1>The inn keeper</h1>
     <p>The game is in progress...</p>
-    <ol id="playerList"></ol>
+    <h2>Player List</h2>
+    <ul id="playerList"></ul>
     <button onclick="endGame()">End Game</button>
 </body>
 </html>

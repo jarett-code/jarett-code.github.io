@@ -12,7 +12,7 @@
 
         function addPlayer(event) {
             event.preventDefault();
-            const playerName = document.getElementById('playerName').value;
+            const playerName = document.getElementById('playerName').value.trim();
             if (playerName) {
                 players.push({ name: playerName, role: '' });
                 document.getElementById('playerName').value = '';
@@ -67,6 +67,7 @@
 
         function clearGame() {
             localStorage.removeItem('players');
+            localStorage.removeItem('gameStarted');
             // Refresh the page
             window.location.href = 'setup.html';
         }

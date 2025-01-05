@@ -2,6 +2,22 @@
 <html>
 <head>
     <title>Werewolf</title>
+    <style>
+        .special-ability {
+            display: none;
+            background-color: black;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 1000;
+        }
+    </style>
     <script>
         const roles = ["werewolf", "villager", "seer", "tracker", "saint", "gossip", "minion", "astrologer"];
         let players = [];
@@ -28,7 +44,6 @@
             savePlayersToLocalStorage();
             updatePlayerList();
             checkAllRolesAssigned();
-            window.location.href = 'next_player_to_scan.html';
         }
 
         function savePlayersToLocalStorage() {
@@ -48,24 +63,75 @@
         function checkAllRolesAssigned() {
             const allAssigned = players.every(player => player.role);
             if (allAssigned) {
-                window.location.href = 'gameplay.html';
+                // Display a 3-second countdown to let the user know the game is ready to start
+                let count = 3;
+                const countdown = setInterval(() => {
+                    if (count > 0) {
+                        document.getElementById('playerList').textContent = `Game starting in ${count}...`;
+                        count--;
+                    } else {
+                        clearInterval(countdown);
+                        window.location.href = 'gameplay.html';
+                    }
+                }, 1000);
+            }
+            else {
+                window.location.href = 'next_player_to_scan.html';
             }
         }
 
         document.addEventListener('DOMContentLoaded', (event) => {
             loadPlayersFromLocalStorage();
             const role = getQueryParams();
-            if (roles.includes(role)) {
-                assignRole(role);
-                console.log('Role assigned:', role);
+
+            // Assign roles only if the game has not started.
+            if (!localStorage.getItem('gameStarted')) {
+                if (roles.includes(role)) {
+                    assignRole(role);
+                    console.log('Role assigned:', role);
+                }
             }
+            else {
+                revealAbilityControls();
+            }            
             updatePlayerList();
         });
+
+        // The gameplay abilities
+        function revealAbilityControls() {
+            document.getElementById('specialAbility').style.display = 'block';
+        }
+
+        function activateSpecialAbility() {
+            const role = getQueryParams();
+            const specialAbilityDiv = document.getElementById('specialAbility');
+            const abilityMessage = document.getElementById('abilityMessage');
+            specialAbilityDiv.style.display = 'flex';
+
+            if (role === 'saint') {
+                const werewolf = players.find(player => player.role === 'werewolf');
+                abilityMessage.textContent = werewolf ? `A werewolf is: ${werewolf.name}` : 'No werewolf found';
+            } else if (role === 'astrologer') {
+                const nonWerewolfVillager = players.find(player => player.role && player.role !== 'werewolf' && player.role !== 'villager');
+                abilityMessage.textContent = nonWerewolfVillager ? `A role in play is: ${nonWerewolfVillager.role}` : 'No special roles found';
+            } else {
+                abilityMessage.textContent = 'No special ability';
+            }
+            document.getElementById('useAbilityButton').style.display = 'none';
+        }
     </script>
 </head>
 <body>
     <h1>The inn keeper</h1>
     <p>Welcome to the inn!</p>
     <ol id="playerList"></ol>
+    <div id="specialAbility" class="special-ability">
+        <div>
+            <p id="abilityMessage"></p>
+            <button id="useAbilityButton" onclick="activateSpecialAbility()">Use ability</button>
+            <!-- Button which navigates the user back to the gameplay.html page -->
+            <button onclick="window.location.href = 'gameplay.html'">Back to game</button>
+        </div>
+    </div>
 </body>
 </html>
