@@ -23,7 +23,7 @@
         function endGame() {
             const storedPlayers = JSON.parse(localStorage.getItem('players'));
             if (storedPlayers) {
-                const resetPlayers = storedPlayers.map(player => ({ ...player, role: '' }));
+                const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false }));
                 localStorage.setItem('players', JSON.stringify(resetPlayers));
             }
             localStorage.removeItem('gameStarted');

@@ -17,6 +17,9 @@
             text-align: center;
             z-index: 1000;
         }
+        .trackerButton {
+            display: none;
+        }
     </style>
     <script>
         const roles = ["werewolf", "villager", "seer", "tracker", "saint", "gossip", "minion", "astrologer"];
@@ -82,7 +85,11 @@
 
         document.addEventListener('DOMContentLoaded', (event) => {
             loadPlayersFromLocalStorage();
-            const role = getQueryParams();
+            const role = getQueryParams();    
+
+            // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
+            players = players.map(player => ({ ...player, usedAbility: false }));
+            savePlayersToLocalStorage();
 
             // Assign roles only if the game has not started.
             if (!localStorage.getItem('gameStarted')) {
@@ -93,6 +100,16 @@
             }
             else {
                 revealAbilityControls();
+                if (role === 'tracker') {
+                    document.querySelectorAll('.trackerButton').forEach(button => {
+                        button.style.display = 'block';
+                    });
+                    document.getElementById('useAbilityButton').style.display = 'none';
+
+                }
+                else {                    
+                    document.getElementById('useAbilityButton').style.display = 'block';
+                }
             }            
             updatePlayerList();
         });
@@ -102,21 +119,71 @@
             document.getElementById('specialAbility').style.display = 'block';
         }
 
-        function activateSpecialAbility() {
+        function activateSpecialAbility(trackDirection=null, character=null) {
             const role = getQueryParams();
+            const currentPlayer = players.find(player => player.role === role);
             const specialAbilityDiv = document.getElementById('specialAbility');
             const abilityMessage = document.getElementById('abilityMessage');
             specialAbilityDiv.style.display = 'flex';
 
+            if (currentPlayer.usedAbility) {
+                abilityMessage.textContent = 'You have already used your ability.';
+                return;
+            }
+
             if (role === 'saint') {
-                const werewolf = players.find(player => player.role === 'werewolf');
-                abilityMessage.textContent = werewolf ? `A werewolf is: ${werewolf.name}` : 'No werewolf found';
+                const werewolfPlayers = players.filter(player => player.role === 'werewolf');
+                const randomWerewolf = werewolfPlayers[Math.floor(Math.random() * werewolfPlayers.length)];
+                abilityMessage.textContent = randomWerewolf ? `${randomWerewolf.name} is a werewolf!` : 'No werewolf found';
             } else if (role === 'astrologer') {
-                const nonWerewolfVillager = players.find(player => player.role && player.role !== 'werewolf' && player.role !== 'villager');
-                abilityMessage.textContent = nonWerewolfVillager ? `A role in play is: ${nonWerewolfVillager.role}` : 'No special roles found';
+                // Get all the special roles in this game except werewolf, villager, and astrologer
+                const possibleRoles = players
+                    .filter(player => player.role && player.role !== 'werewolf' && player.role !== 'villager' && player.role !== 'astrologer')
+                    .map(player => player.role);
+                // Now, pick a random role from the possible roles
+                const randomRole = possibleRoles[Math.floor(Math.random() * possibleRoles.length)];
+                abilityMessage.textContent = randomRole ? `The ${randomRole} is in play!` : 'No special roles found';
+            } else if (role === 'tracker') {
+                // The tracker chooses either half the players in the list to determine if a wolf is among them.
+                // Get the total player count
+                const totalPlayers = players.length;
+                // Get the position of the current player
+                const currentPlayerIndex = players.findIndex(player => player.role === 'tracker');
+                const numberToBeTracked = Math.floor(totalPlayers / 2);
+                let playersToTrack = [];
+
+                if (trackDirection == 'left') {
+                    // for loop for the number to be tracked
+                    for (let i = 1; i <= numberToBeTracked; i++) {
+                        let playerToTrackIndex = currentPlayerIndex + i;
+                        if (playerToTrackIndex > totalPlayers-1) {
+                            playerToTrackIndex = playerToTrackIndex - totalPlayers;
+                        }
+                        playersToTrack.push(players[playerToTrackIndex]);
+                    }
+                }
+                else if (trackDirection == 'right') {
+                    // for loop for the number to be tracked
+                    for (let i = 1; i <= numberToBeTracked; i++) {
+                        let playerToTrackIndex = currentPlayerIndex - i;
+                        if (playerToTrackIndex < 0) {
+                            playerToTrackIndex = totalPlayers + playerToTrackIndex;
+                        }
+                        playersToTrack.push(players[playerToTrackIndex]);
+                    }
+                }
+                trackedPlayerNamesString = playersToTrack.map(player => player.name).join(', ');
+                const werewolfWasFound = playersToTrack.find(player => player.role === 'werewolf');
+                abilityMessage.textContent = werewolfWasFound ? `A werewolf hides amongst ${trackedPlayerNamesString}.` : `${trackedPlayerNamesString} are not werewolves.`;
+
             } else {
                 abilityMessage.textContent = 'No special ability';
             }
+            
+            // Set a flag to indicate that the player has used their ability
+            currentPlayer.usedAbility = true;
+            savePlayersToLocalStorage();            
+
             document.getElementById('useAbilityButton').style.display = 'none';
         }
     </script>
@@ -129,6 +196,8 @@
         <div>
             <p id="abilityMessage"></p>
             <button id="useAbilityButton" onclick="activateSpecialAbility()">Use ability</button>
+            <button id="trackLeftButton" class="trackerButton" onclick="activateSpecialAbility(trackDirection='left')">Track left</button>
+            <button id="trackRightButton" class="trackerButton" onclick="activateSpecialAbility(trackDirection='right')">Track right</button>
             <!-- Button which navigates the user back to the gameplay.html page -->
             <button onclick="window.location.href = 'gameplay.html'">Back to game</button>
         </div>
