@@ -11,7 +11,9 @@
     <div x-data="scan()" class="pure-g">
         <div id="player-container" class="panel pure-u-1">
             <form id="playerForm" onsubmit="addPlayer(event)">
-                <label for="playerName">Enter player name:</label>
+                <label for="playerName">Player name:</label>
+                <br>
+                <br>
                 <input type="text" id="playerName" required>
                 <button type="submit" class="pure-button button-small">➕ Add</button>
             </form>
@@ -31,7 +33,7 @@
             </ol>
         </div>
         <div class="panel clear">
-            <a href="scan_roles.html" id="start-game" class="pure-button pure-u-1" onclick="startGame(event)">▶️ Start the game</a>
+            <a href="scan_roles.html" id="start-game" class="pure-button pure-u-1" onclick="startGame(event)">🗡️ Start the game</a>
         </div>        
         
         <div x-show="specialAbilityVisible" class="special-ability panel">

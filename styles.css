@@ -4,10 +4,9 @@ ol {
 }
 
 html {
-    background-image: url('images/background_full.jpg');
-    background-repeat: no-repeat center fixed;
-    background-size: cover;
-    background-position: center;
+    background-image: url('images/background_full.jpg');    
+    background-repeat: no-repeat;
+    background-position-x: center;
     background-color: black;    
 }
 
@@ -39,8 +38,8 @@ body {
     opacity: 0.8;
     border-radius: 4px;
     padding:20px;
-    margin: 30px 10px;
-    width: 98%;
+    margin: 22px 10px;
+    width: 100%;
     text-align: center;
 }
 
