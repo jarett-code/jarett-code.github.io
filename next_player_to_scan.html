@@ -2,6 +2,8 @@
 <html>
 <head>
     <title>Werewolf</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">
     <script>
         function loadPlayersFromLocalStorage() {
             const storedPlayers = JSON.parse(localStorage.getItem('players'));
@@ -23,13 +25,30 @@
             }
         }
 
+        function startOver() {
+            const storedPlayers = JSON.parse(localStorage.getItem('players'));
+            if (storedPlayers) {
+                // Reset all players to their initial state
+                const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false }));
+                localStorage.setItem('players', JSON.stringify(resetPlayers));                
+            }
+            localStorage.removeItem('gameStarted');
+            window.location.href = 'setup.html';
+        }
+
         document.addEventListener('DOMContentLoaded', (event) => {
             displayNextPlayer();
         });
     </script>
 </head>
 <body>
-    <h1>The inn keeper</h1>
-    <p>Scan <strong><span id="player-name"></span></strong>'s card.</p>
+    <div>
+        <div class="panel">
+            <p>Scan <strong><span id="player-name"></span></strong>'s card.</p>    
+        </div> 
+        <div class="panel clear pure-g">
+            <button id="end-game" onclick="startOver()" class="pure-u-1"> 🔄 Start over</button>
+        </div>
+    </div>
 </body>
 </html>

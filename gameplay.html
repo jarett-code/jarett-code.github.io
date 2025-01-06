@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Werewolf</title>
+    <title>Werewolf</title>    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">
     <script>
         function loadPlayersFromLocalStorage() {
             const storedPlayers = JSON.parse(localStorage.getItem('players'));
@@ -46,10 +48,16 @@
     </script>
 </head>
 <body>
-    <h1>The inn keeper</h1>
-    <p>The game is in progress...</p>
-    <h2>Player List</h2>
-    <ul id="playerList"></ul>
-    <button onclick="endGame()">End Game</button>
+    <div>
+        <div class="panel">
+            <p>The game is in progress...</p>
+        </div>
+        <div id="player-container" class="panel">
+            <ol id="playerList"></ol>            
+        </div>
+        <div class="panel clear pure-g">
+            <button id="end-game" onclick="endGame()" class="pure-u-1"> ⏹️ End game</button>
+        </div>
+    </div>
 </body>
 </html>

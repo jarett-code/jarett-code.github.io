@@ -1,26 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Werewolf</title>
-    <style>
-        .special-ability {
-            display: none;
-            background-color: black;
-            color: white;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            z-index: 1000;
-        }
-        .trackerButton {
-            display: none;
-        }
-    </style>
+    <title>Werewolf</title>    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">
     <script>
         const roles = ["werewolf", "villager", "seer", "tracker", "saint", "gossip", "minion", "astrologer"];
         let players = [];
@@ -189,10 +172,10 @@
     </script>
 </head>
 <body>
-    <h1>The inn keeper</h1>
-    <p>Welcome to the inn!</p>
-    <ol id="playerList"></ol>
-    <div id="specialAbility" class="special-ability">
+    <div id="player-container" class="panel">
+        <ol id="playerList"></ol>
+    </div>    
+    <div id="specialAbility" class="special-ability panel">
         <div>
             <p id="abilityMessage"></p>
             <button id="useAbilityButton" onclick="activateSpecialAbility()">Use ability</button>

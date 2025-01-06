@@ -1,0 +1,89 @@
+ol {
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    background-image: url('images/background.jpg');
+    background-repeat: no-repeat center fixed;
+    background-size: cover;
+    background-color: black;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+}
+
+.special-ability {
+    display: none;
+    background-color: black;
+    color: white;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 1000;
+}
+.trackerButton {
+    display: none;
+}
+
+.panel {
+    background-color: white;
+    opacity: 0.8;
+    border-radius: 4px;
+    padding:20px;
+    margin: 30px 10px;
+    width: 460px;
+    text-align: center;
+}
+
+.clear {      
+    background: none;
+    opacity: 1.0;
+}
+
+#playerList li {
+    list-style-type: none;
+    display: block;
+    padding: 9px;
+    border: 1px solid grey;
+    background-color: #eee;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #666;
+}
+
+#playerList button {
+    border-radius: 5px;
+    color: white;
+    border: none;
+    cursor: pointer;
+    float: right;
+}
+
+#start-game, #end-game {
+    padding: 30px 0;
+    font-weight: 600;
+    color: #666;    
+}
+#start-game:hover, #end-game:hover {    
+    color: #333;
+    cursor: pointer;
+}
+
+#clear-game {
+    margin-top: 200px;
+    display: flex;
+    justify-self: center;
+}
+
+.button-small {
+    font-size: 75%;    
+}
