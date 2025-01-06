@@ -4,10 +4,11 @@ ol {
 }
 
 html {
-    background-image: url('images/background.jpg');
+    background-image: url('images/background_full.jpg');
     background-repeat: no-repeat center fixed;
     background-size: cover;
-    background-color: black;
+    background-position: center;
+    background-color: black;    
 }
 
 body {
@@ -39,7 +40,7 @@ body {
     border-radius: 4px;
     padding:20px;
     margin: 30px 10px;
-    width: 460px;
+    width: 98%;
     text-align: center;
 }
 
