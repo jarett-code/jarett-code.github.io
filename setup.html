@@ -8,176 +8,68 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 <body>
-    <div x-data="scan()" class="pure-g">
+    <div x-data="setup()" class="pure-g">
         <div id="player-container" class="panel pure-u-1">
-            <form id="playerForm" onsubmit="addPlayer(event)">
-                <label for="playerName">Player name:</label>
-                <br>
-                <br>
-                <input type="text" id="playerName" required>
+            <h1>Enter players</h1>
+            <form id="playerForm" @submit.prevent="addPlayer">                                
+                <input type="text" id="playerName" x-model="playerName" placeholder="Player name" required>
                 <button type="submit" class="pure-button button-small">➕ Add</button>
             </form>
-            <p><small>Enter players in the order they are seated around the table, clock-wise.</small></p>
+            <p><small>Enter players in clock-wise order.</small></p>
         </div>
-        <div id="readyMessage"  class="panel" style="display:none;">
+        <div id="readyMessage" class="panel" x-show="isScanStarted">
             <p><strong>Scan the player cards!</strong></p>
-            <p><small>After dealing cards, first scan <span x-text="players[0].name"></span>. Continue <em>clock-wise</em>, ending with <span x-text="lastPlayer"></span>.</small></p>
+            <!-- <p><small>After dealing cards, first scan <span x-text="players[0].name"></span>. Continue <em>clock-wise</em>, ending with <span x-text="players[players.length - 1].name"></span>.</small></p> -->
         </div>
-        <div class="panel">
+        <div class="panel" x-show="players.length > 0">
             <ol id="playerList">
                 <template x-for="(player, index) in players" :key="index">
                     <li>
                         <span x-text="player.name + (player.role ? ' - Role assigned' : ' - No role assigned')"></span>
+                        <button @click="removePlayer(index)">X</button>
                     </li>
                 </template>
             </ol>
         </div>
         <div class="panel clear">
-            <a href="scan_roles.html" id="start-game" class="pure-button pure-u-1" onclick="startGame(event)">🗡️ Start the game</a>
-        </div>        
-        
-        <div x-show="specialAbilityVisible" class="special-ability panel">
-            <div>
-                <p x-text="abilityMessage"></p>
-                <button @click="useAbility">Use ability</button>
-            </div>
+            <a href="next_player_to_scan.html" id="start-game" class="pure-button pure-u-1" @click="startScan">🗡️ Start the game</a>
         </div>
-
-        <button id="clear-game" class="pure-button" onclick="clearGame()">↩️ Reset all</button>
+    
     </div>
 
     <script>
-        let players = [];
-
-        function addPlayer(event) {
-            event.preventDefault();
-            const playerName = document.getElementById('playerName').value.trim();
-            if (playerName) {
-                players.push({ name: playerName, role: '' });
-                document.getElementById('playerName').value = '';
-                updatePlayerList();
-                savePlayersToLocalStorage();
-            }
-        }
-
-        function updatePlayerList() {
-            const playerList = document.getElementById('playerList');
-            playerList.innerHTML = '';
-            players.forEach((player, index) => {
-                const li = document.createElement('li');
-                li.textContent = player.name;
-
-                const removeButton = document.createElement('button');
-                removeButton.textContent = "✖️";
-                removeButton.onclick = () => removePlayer(index);
-
-                li.appendChild(removeButton);
-                playerList.appendChild(li);
-            });
-        }
-
-        function removePlayer(index) {
-            players.splice(index, 1);
-            updatePlayerList();
-            savePlayersToLocalStorage();
-        }
-
-        function savePlayersToLocalStorage() {
-            localStorage.setItem('players', JSON.stringify(players));
-        }
-
-        function loadPlayersFromLocalStorage() {
-            const storedPlayers = JSON.parse(localStorage.getItem('players'));
-            if (storedPlayers) {
-                players = storedPlayers;
-                updatePlayerList();
-            }
-        }
-
-        function startGame(event) {
-            event.preventDefault();
-            document.getElementById('player-container').style.display = 'none';
-            document.getElementById('start-game').style.display = 'none';
-            document.getElementById('readyMessage').style.display = 'block';
-            document.querySelectorAll('#playerList button').forEach(button => {
-                button.classList.add('hidden');
-            });
-        }
-
-        function clearGame() {
-            localStorage.removeItem('players');
-            localStorage.removeItem('gameStarted');
-            // Refresh the page
-            window.location.href = 'setup.html';
-        }
-
-        document.addEventListener('DOMContentLoaded', (event) => {
-            loadPlayersFromLocalStorage();
-        });
-
-        function scan() {
+        function setup() {
             return {
+                playerName: '',
                 players: [],
-                lastPlayer: "",
-                specialAbilityVisible: false,
-                abilityMessage: '',
-                loadPlayersFromLocalStorage() {
-                    const storedPlayers = JSON.parse(localStorage.getItem('players'));
-                    if (storedPlayers) {
-                        this.players = storedPlayers;
-                        this.lastPlayer = this.players[this.players.length - 1].name;                       
+                isScanStarted: false,
+                addPlayer() 
+                {
+                    if (this.playerName) {
+                        this.players.push({ name: this.playerName, role: '' });
+                        this.playerName = '';
+                        this.savePlayersToLocalStorage();
                     }
                 },
-                assignRole(role) {
-                    for (let player of this.players) {
-                        if (!player.role) {
-                            player.role = role;
-                            break;
-                        }
-                    }
+                removePlayer(index) {
+                    this.players.splice(index, 1);
                     this.savePlayersToLocalStorage();
-                    this.updatePlayerList();
-                    this.checkAllRolesAssigned();
-                    if (localStorage.getItem('gameStarted') === 'true') {
-                        this.activateSpecialAbility(role);
-                    } else {
-                        window.location.href = 'setup.html';
-                    }
                 },
                 savePlayersToLocalStorage() {
                     localStorage.setItem('players', JSON.stringify(this.players));
                 },
-                updatePlayerList() {
-                    // This method is not needed in Alpine.js as the list updates reactively
-                },
-                checkAllRolesAssigned() {
-                    const allAssigned = this.players.every(player => player.role);
-                    if (allAssigned) {
-                        window.location.href = 'gameplay.html';
+                loadPlayersFromLocalStorage() {
+                    const storedPlayers = JSON.parse(localStorage.getItem('players'));
+                    if (storedPlayers) {
+                        this.players = storedPlayers;
                     }
                 },
-                activateSpecialAbility(role) {
-                    this.specialAbilityVisible = true;
-                    if (role === 'saint') {
-                        const werewolf = this.players.find(player => player.role === 'werewolf');
-                        this.abilityMessage = werewolf ? `A werewolf is: ${werewolf.name}` : 'No werewolf found';
-                    } else if (role === 'astrologer') {
-                        const nonWerewolfVillager = this.players.find(player => player.role && player.role !== 'werewolf' && player.role !== 'villager');
-                        this.abilityMessage = nonWerewolfVillager ? `A role in play is: ${nonWerewolfVillager.role}` : 'No special roles found';
-                    } else {
-                        this.abilityMessage = 'No special ability';
-                    }
-                },
-                useAbility() {
-                    this.specialAbilityVisible = false;
+                startScan() {
+                    this.isScanStarted = true;
+                    localStorage.setItem('isScanStarted', 'true');
                 },
                 init() {
                     this.loadPlayersFromLocalStorage();
-                    const urlParams = new URLSearchParams(window.location.search);
-                    const role = urlParams.get('role');
-                    if (role) {
-                        this.assignRole(role);
-                    }
                 }
             }
         }

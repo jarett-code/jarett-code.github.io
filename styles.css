@@ -43,6 +43,14 @@ body {
     text-align: center;
 }
 
+.panel h1 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #666;
+}
+
 .clear {      
     background: none;
     opacity: 1.0;
@@ -61,8 +69,7 @@ body {
 }
 
 #playerList button {
-    border-radius: 5px;
-    color: white;
+    border-radius: 5px;    
     border: none;
     cursor: pointer;
     float: right;
@@ -78,12 +85,17 @@ body {
     cursor: pointer;
 }
 
-#clear-game {
-    margin-top: 200px;
-    display: flex;
-    justify-self: center;
-}
-
+/* Buttons */
 .button-small {
     font-size: 75%;    
+}
+
+.progress-display {
+    visibility: hidden;
+    color:white;        
+}
+
+/* Add shadow to text */
+#progress-percent {
+    text-shadow: 0 0 6px #000;
 }

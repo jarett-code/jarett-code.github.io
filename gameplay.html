@@ -5,7 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
     <link rel="stylesheet" href="styles.css">
+    <script src="scripts.js" defer></script>
     <script>
+
+        // When the doc is ready
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.getElementById('sound').addEventListener('click', playSound);   
+        });
+
+        // TESTING SOUND
+        function playSound() {
+            const sound = new Audio("sounds/wolf-howling.mp3");
+            sound.play();
+        }
+
         function loadPlayersFromLocalStorage() {
             const storedPlayers = JSON.parse(localStorage.getItem('players'));
             if (storedPlayers) {
@@ -36,7 +49,11 @@
         function checkGameStartConditions() {
             const players = JSON.parse(localStorage.getItem('players'));
             if (players && players.every(player => player.role)) {
-                localStorage.setItem('gameStarted', 'true');
+                localStorage.setItem('gameStarted', 'true');                
+
+                // simulate a button click to start the game
+                document.getElementById('sound').click();
+                
             } else {     
                 window.location.href = 'setup.html';
             }
@@ -51,14 +68,25 @@
 <body>
     <div class="pure-g">
         <div class="panel">
-            <p>The game is in progress.</p>
-            <p><small>You may scan a card to activate a role's ability.</small></p>
+            <h1>Game in progress</h1>
+            <p><small>You may scan a card to activate its ability.</small></p>
         </div>
         <div id="player-container" class="panel">
             <ol id="playerList"></ol>            
         </div>
-        <div class="panel clear pure-g">
-            <button id="end-game" onclick="endGame()" class="pure-u-1"> ⏹️ End game</button>
+        
+        <div class="panel clear">
+            <div class="progress-display">
+                <span id="progress-percent">0%</span>
+                <br>
+                <progress id="progress-bar" max="100" value="0"></progress>            
+                <br>
+            </div>
+            <button id="end-game" class="pure-u-1">💀 Hold to end game</button>            
+        </div>
+
+        <div class="panel clear">
+            <button id="sound" class="pure-u-1">🔊 Howl [test feature]</button>
         </div>
     </div>
 </body>
