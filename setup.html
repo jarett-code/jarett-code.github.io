@@ -4,6 +4,7 @@
     <title>Werewolf</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">        
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
@@ -13,7 +14,10 @@
             <h1>Enter players</h1>
             <form id="playerForm" @submit.prevent="addPlayer">                                
                 <input type="text" id="playerName" x-model="playerName" placeholder="Player name" required>
-                <button type="submit" class="pure-button button-small">➕ Add</button>
+                <button type="submit" class="pure-button button-small">
+                    <i class="fa-solid fa-plus"></i>
+                    Add
+                </button>
             </form>
             <p><small>Enter players in clock-wise order.</small></p>
         </div>
@@ -25,14 +29,19 @@
             <ol id="playerList">
                 <template x-for="(player, index) in players" :key="index">
                     <li>
-                        <span x-text="player.name + (player.role ? ' - Role assigned' : ' - No role assigned')"></span>
-                        <button @click="removePlayer(index)">X</button>
+                        <span x-text="player.name"></span>
+                        <button @click="removePlayer(index)">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </button>
                     </li>
                 </template>
             </ol>
         </div>
         <div class="panel clear">
-            <a href="next_player_to_scan.html" id="start-game" class="pure-button pure-u-1" @click="startScan">🗡️ Start the game</a>
+            <a href="next_player_to_scan.html" id="start-game" class="pure-button pure-u-1-2" @click="startScan">
+                <i class="fa-solid fa-circle-play"></i>
+                Start the game
+            </a>
         </div>
     
     </div>
@@ -59,10 +68,7 @@
                     localStorage.setItem('players', JSON.stringify(this.players));
                 },
                 loadPlayersFromLocalStorage() {
-                    const storedPlayers = JSON.parse(localStorage.getItem('players'));
-                    if (storedPlayers) {
-                        this.players = storedPlayers;
-                    }
+                    this.players = JSON.parse(localStorage.getItem('players'));
                 },
                 startScan() {
                     this.isScanStarted = true;

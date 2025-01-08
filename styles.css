@@ -56,6 +56,7 @@ body {
     opacity: 1.0;
 }
 
+
 #playerList li {
     list-style-type: none;
     display: block;
@@ -75,6 +76,18 @@ body {
     float: right;
 }
 
+#scan-area {
+    border: 2px dashed white;
+    width: 100%;
+    height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+    color: white;
+    text-shadow: 0 0 6px #000;
+}
+
 #start-game, #end-game {
     padding: 30px 0;
     font-weight: 600;
@@ -85,9 +98,20 @@ body {
     cursor: pointer;
 }
 
+/* Icons */
+i {
+    color: #666;
+    font-size: 14pt;
+}
+
 /* Buttons */
 .button-small {
-    font-size: 75%;    
+    height: 24px;
+    padding: 3px 20px 3px 20px;
+    margin-bottom:2px;
+}
+.button-small i {
+    font-size: 10pt;
 }
 
 .progress-display {
