@@ -10,6 +10,8 @@
     <script>
         const roles = ["werewolf", "villager", "seer", "tracker", "saint", "gossip", "minion", "astrologer"];
         let players = [];
+        // Audio for the special ability
+        const audio = new Audio('sounds/power_activated.mp3');
 
         function getQueryParams() {
             const params = new URLSearchParams(window.location.search);
@@ -128,7 +130,7 @@
                     .map(player => player.role);
                 // Now, pick a random role from the possible roles
                 const randomRole = possibleRoles[Math.floor(Math.random() * possibleRoles.length)];
-                abilityMessage.textContent = randomRole ? `The ${randomRole} is in play!` : 'No special roles found';
+                abilityMessage.textContent = randomRole ? `The ${randomRole} is in play` : 'No special roles found';
             } else if (role === 'tracker') {
                 // The tracker chooses either half the players in the list to determine if a wolf is among them.
                 // Get the total player count
@@ -163,29 +165,38 @@
                 abilityMessage.textContent = werewolfWasFound ? `A werewolf hides amongst ${trackedPlayerNamesString}.` : `${trackedPlayerNamesString} are not werewolves.`;
 
             } else {
-                abilityMessage.textContent = "(You're bluffing, right?)";
+                abilityMessage.textContent = "You're bluffing, right?";
             }
 
             // Activate special effects
-            specialEffects();
+            specialEffects(role);
             
             // Set a flag to indicate that the player has used their ability
             currentPlayer.usedAbility = true;
             savePlayersToLocalStorage();                        
         }
 
-        function specialEffects() {
-            // Play the sound effect
-            const audio = new Audio('sounds/power_activated.mp3');
+        function specialEffects(role=null) {
+            // Play the sound effect            
             audio.play();
 
             // Animation
-            const useAbilityButton = document.getElementById('useAbilityButton')
-
+            const useAbilityButton = document.getElementById('useAbilityButton');           
+            
             useAbilityButton.classList.add('fade-out');
             useAbilityButton.addEventListener('transitionend', () => {
                 useAbilityButton.style.display = 'none';
-            }, { once: true });
+            }, { once: true });            
+
+            if (role === "tracker") {
+                // Hide the track buttons after the ability is used
+                document.getElementById('trackLeftButton').classList.add('slide-right-fade-out');
+                document.getElementById('trackRightButton').classList.add('slide-left-fade-out');
+                // document.querySelectorAll('.trackerButton').forEach(button => {                  
+                //     button.classList.add('slide-left');
+                //     button.classList.add('fade-out');                    
+                // });                                
+            }    
             
 
             const abilityEffect = document.getElementById('ability-effect');
@@ -206,12 +217,21 @@
         <div id="ability-effect"></div>
         <!-- Ability buttons -->
         <button id="useAbilityButton" class="pure-button" onclick="activateSpecialAbility()">
-            <i class="fa-solid fa-wand-sparkles"></i>
+            <!-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -->
+
+            <!-- touch icon -->
+            <i class="fa-solid fa-fingerprint"></i>
         </button>
-        <button id="trackLeftButton" class="trackerButton pure-button" onclick="activateSpecialAbility(trackDirection='left')">Track left</button>
-        <button id="trackRightButton" class="trackerButton pure-button" onclick="activateSpecialAbility(trackDirection='right')">Track right</button>
+        <button id="trackLeftButton" class="trackerButton pure-button button-primary" onclick="activateSpecialAbility(trackDirection='left')">
+            <i class="fa-solid fa-arrow-left"></i>
+            Track left
+        </button>
+        <button id="trackRightButton" class="trackerButton pure-button button-primary" onclick="activateSpecialAbility(trackDirection='right')">
+            Track right
+            <i class="fa-solid fa-arrow-right"></i>
+        </button>
         <!-- Button which navigates the user back to the gameplay.html page -->
-        <button id="cancel-ability" onclick="window.location.href = 'gameplay.html'" class="pure-button">
+        <button id="cancel-ability" onclick="window.location.href = 'gameplay.html'" class="pure-button button-primary">
             <i class="fa-solid fa-arrow-left"></i>
             Go back
         </button>

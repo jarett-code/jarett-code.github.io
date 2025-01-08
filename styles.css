@@ -3,11 +3,21 @@ ol {
     padding: 0;
 }
 
+@font-face {
+    font-family: 'Wolfy';
+    src: url('fonts/NewRocker-Regular.ttf') format('truetype');
+}
+@font-face {
+    font-family: 'SpecialPower';
+    src: url('fonts/Lacquer-Regular.ttf') format('truetype');
+}
+
 html {
     background-image: url('images/background_full.jpg');    
     background-repeat: no-repeat;
     background-position-x: center;
-    background-color: black;    
+    background-color: black;
+    font-family: 'Wolfy', sans-serif;
 }
 
 body {
@@ -70,7 +80,6 @@ i {
     animation: grow 4s reverse;
 }
 
-
 .trackerButton {
     display: none;
 }
@@ -90,7 +99,7 @@ i {
     margin-bottom: 10px;
     font-size: 1.5em;
     font-weight: 600;
-    color: #666;
+    color: #333;
 }
 
 .clear {      
@@ -108,7 +117,7 @@ i {
     border-radius: 8px;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #666;
+    color: #333;
 }
 
 #playerList button {
@@ -119,6 +128,7 @@ i {
 }
 
 #scan-area {
+    margin-top: 80px;
     border: 2px dashed white;
     width: 100%;
     height: 200px;
@@ -131,7 +141,7 @@ i {
 }
 
 #start-game, #end-game {
-    padding: 30px 0;
+    padding: 24px 0;
     font-weight: 600;
     color: #666;    
 }
@@ -142,7 +152,7 @@ i {
 
 #useAbilityButton {
     border-radius: 50%;
-    padding: 18px 20px;
+    padding: 16px 18px;
     background-color: #0251DF; 
     color: white;
     text-decoration: none;
@@ -152,9 +162,28 @@ i {
     z-index: -1;
 }
 
+#useAbilityButton i {
+    color: lightblue;
+}
+
 #useAbilityButton:hover {
     box-shadow: 0 0 3px 2px #0251DF;
     cursor: pointer;
+}
+
+.trackerButton {
+    margin: 0 30px;
+}
+
+.slide-left-fade-out {
+    opacity: 0;
+    transform: translateX(-100px) scale(0) rotate(360deg);    
+    transition: opacity 2.5s ease-out, transform 2.5s ease-in-out    
+}
+.slide-right-fade-out {
+    opacity: 0;
+    transform: translateX(+100px) scale(0) rotate(360deg);
+    transition: opacity 2.5s ease-out, transform 2.5s ease-in-out
 }
 
 .fade-out {
@@ -163,28 +192,35 @@ i {
     transition: opacity 2.5s ease-out, transform 3s linear; 
 }
 
-
-#useAbilityButton i{
-    color: white;
-}
 #cancel-ability {
     position: absolute;
     bottom: 10px;   
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.5); color: #666;}
-    to { opacity: 1; transform: scale(1); color: white;}
+    from { opacity: 0; transform: scale(0.2) scaleX(0.5); color: #666;}
+    to { opacity: 1; transform: scale(1) scaleX(1); color: white;}
 }
 
 #abilityMessage {
+    font-size: 14pt;
+    font-family: 'SpecialPower', sans-serif;
     display: none;
     /* add a fade in effect */
-    animation: fadeIn 4s ease-in;
-
+    animation: fadeIn 4s ease;
+    position: absolute;    
+    z-index: 1;
 }
 
 /* Buttons */
+.pure-button {
+    border-radius: 5px;
+}
+
+.button-primary i {
+    color:#1C4D9C;
+}
+
 .button-small {
     height: 24px;
     padding: 3px 20px 3px 20px;
@@ -196,7 +232,7 @@ i {
 
 .progress-display {
     visibility: hidden;
-    color:white;        
+    color:white;
 }
 
 /* Add shadow to text */
