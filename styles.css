@@ -15,6 +15,12 @@ body {
     justify-content: center;
 }
 
+/* Icons */
+i {
+    color: #666;
+    font-size: 14pt;
+}
+
 .special-ability {
     display: none;
     background-color: black;
@@ -29,6 +35,42 @@ body {
     text-align: center;
     z-index: 1000;
 }
+
+#ability-effect {
+    height:400px;
+    width: 400px;
+    z-index: -1;
+    position: absolute;
+    background-image: url('images/special_effect.gif');
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: center;
+    background-size: 50% 50%;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes grow {
+    from {
+        transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+        transform: translate(-50%, -50%) scale(3);
+    }
+}
+
+
+.growing {
+    animation: grow 4s forwards;
+}
+
+.shrinking {
+    animation: grow 4s reverse;
+}
+
+
 .trackerButton {
     display: none;
 }
@@ -98,10 +140,48 @@ body {
     cursor: pointer;
 }
 
-/* Icons */
-i {
-    color: #666;
-    font-size: 14pt;
+#useAbilityButton {
+    border-radius: 50%;
+    padding: 18px 20px;
+    background-color: #0251DF; 
+    color: white;
+    text-decoration: none;
+    border: none;
+    box-shadow: 0 0 3px 2px #0251DF;
+    position: absolute;
+    z-index: -1;
+}
+
+#useAbilityButton:hover {
+    box-shadow: 0 0 3px 2px #0251DF;
+    cursor: pointer;
+}
+
+.fade-out {
+    opacity: 0;
+    transform: scale(0) rotate(360deg);
+    transition: opacity 2.5s ease-out, transform 3s linear; 
+}
+
+
+#useAbilityButton i{
+    color: white;
+}
+#cancel-ability {
+    position: absolute;
+    bottom: 10px;   
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.5); color: #666;}
+    to { opacity: 1; transform: scale(1); color: white;}
+}
+
+#abilityMessage {
+    display: none;
+    /* add a fade in effect */
+    animation: fadeIn 4s ease-in;
+
 }
 
 /* Buttons */
@@ -121,5 +201,5 @@ i {
 
 /* Add shadow to text */
 #progress-percent {
-    text-shadow: 0 0 6px #000;
+    text-shadow: 0 0 6px #000
 }

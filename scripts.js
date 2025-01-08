@@ -28,26 +28,49 @@ function load() {
     progressPercent.innerHTML = loadVal + "%";
 }
 
-// Add listeners for touch events
-resetButton.addEventListener("touchstart", function () {
-    // Show the progress display
-    progressDisplay.style.visibility = "visible";
+// Add listeners for touch events and the buttons exist
 
-    if (loadVal < 100) {
-        loadingInterval = setInterval(load, 20);
-    }
-});
+if (resetButton) {
+    resetButton.addEventListener("touchstart", function () {
+        // Show the progress display
+        progressDisplay.style.visibility = "visible";
 
-resetButton.addEventListener("touchend", function () {
-    // Hide the progress display
-    progressDisplay.style.visibility = "hidden";
+        if (loadVal < 100) {
+            loadingInterval = setInterval(load, 20);
+        }
+    });
 
-    if (loadVal < 100) {
-        loadVal = 0;
-        clearInterval(loadingInterval);
-        progress.setAttribute("value", loadVal);
-        progressPercent.innerHTML = 0 + "%";
-    }
-});
+    resetButton.addEventListener("touchend", function () {
+        // Hide the progress display
+        progressDisplay.style.visibility = "hidden";
 
+        if (loadVal < 100) {
+            loadVal = 0;
+            clearInterval(loadingInterval);
+            progress.setAttribute("value", loadVal);
+            progressPercent.innerHTML = 0 + "%";
+        }
+    });
+}
+
+let holdTimeout;
+
+// Special ability effect
+// function startHold() {
+//     const abilityEffect = document.getElementById('ability-effect');
+//     abilityEffect.classList.remove('shrinking');
+//     abilityEffect.classList.add('growing');
+//     holdTimeout = setTimeout(() => {        
+//         activateSpecialAbility();     
+//         // Play sound         
+//         audio.play();
+//     }, 4000);
+// }
+
+// function endHold() {
+//     clearTimeout(holdTimeout);
+//     const abilityEffect = document.getElementById('ability-effect');
+//     abilityEffect.classList.remove('growing');
+//     abilityEffect.classList.add('shrinking');
+// }
 

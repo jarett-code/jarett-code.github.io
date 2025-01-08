@@ -7,18 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">        
     <link rel="stylesheet" href="styles.css">
     <script src="scripts.js" defer></script>
-    <script>
-
-        // When the doc is ready
-        document.addEventListener('DOMContentLoaded', (event) => {
-            document.getElementById('sound').addEventListener('click', playSound);   
-        });
-
-        // TESTING SOUND
-        function playSound() {
-            const sound = new Audio("sounds/wolf-howling.mp3");
-            sound.play();
-        }
+    <script>    
 
         function loadPlayersFromLocalStorage() {
             const storedPlayers = JSON.parse(localStorage.getItem('players'));
@@ -37,11 +26,7 @@
         function checkGameStartConditions() {
             const players = JSON.parse(localStorage.getItem('players'));
             if (players && players.every(player => player.role)) {
-                localStorage.setItem('gameStarted', 'true');                
-
-                // simulate a button click to start the game
-                document.getElementById('sound').click();
-                
+                localStorage.setItem('gameStarted', 'true');
             } else {     
                 window.location.href = 'setup.html';
             }
@@ -74,11 +59,7 @@
                 <i class="fa-solid fa-hourglass-end"></i>
                 Hold to end game
             </button>            
-        </div>
-
-        <div class="panel clear">
-            <button id="sound" class="pure-u-1">🔊 Howl [test feature]</button>
-        </div>
+        </div>        
     </div>
 </body>
 </html>
