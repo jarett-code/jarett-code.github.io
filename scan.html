@@ -20,8 +20,8 @@
         <div id="ability-effect"></div>
         <!-- Ability buttons -->
         <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="activateSpecialAbility()">
-            <!-- <i class="fa-solid fa-wand-sparkles"></i> -->
-            <i class="fa-solid fa-fingerprint"></i>
+            <i class="fa-solid fa-hands-holding-circle"></i>
+            <!-- <i class="fa-solid fa-eye"></i> -->
         </button>
         <button id="trackLeftButton" x-show="showTrackerButtons" class="trackerButton pure-button button-primary" @click="activateSpecialAbility(trackDirection='left')">
             <i class="fa-solid fa-arrow-left"></i>
@@ -144,7 +144,7 @@
                         this.showTrackerButtons = true;
                     }
 
-                },
+                },                
                 activateSpecialAbility(trackDirection=null, character=null) {
                     const role = this.getQueryParams();
                     const currentPlayer = this.players.find(player => player.role === role);
