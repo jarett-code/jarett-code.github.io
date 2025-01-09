@@ -155,7 +155,7 @@ i {
     border: none;
     box-shadow: 0 0 3px 2px #0251DF;
     position: absolute;
-    z-index: -1;
+    z-index: 2000;
 }
 
 #useAbilityButton i {
@@ -169,6 +169,11 @@ i {
 
 .trackerButton {
     margin: 0 30px;
+}
+
+#seerControls #playerSelect {
+    margin-top: 260px;    
+
 }
 
 .slide-left-fade-out {

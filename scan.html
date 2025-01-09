@@ -19,7 +19,7 @@
         <p id="abilityMessage" x-text="abilityMessage"></p>
         <div id="ability-effect"></div>
         <!-- Ability buttons -->
-        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="activateSpecialAbility()">
+        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="activateSpecialAbility()" :disabled="role=='seer' && !selectedPlayer">
             <i class="fa-solid fa-hands-holding-circle"></i>
             <!-- <i class="fa-solid fa-eye"></i> -->
         </button>
@@ -31,6 +31,15 @@
             Track right
             <i class="fa-solid fa-arrow-right"></i>
         </button>
+        <div id="seerControls" x-show="showSeerControls">
+            <select id="playerSelect" x-model="selectedPlayer" >
+                <option value="">Select a player</option>
+                <template x-for="player in playersToView" :key="player.name">
+                    <option x-text="player.name" :value="player.name"></option>
+                </template>
+            </select>
+            <br>
+        </div>
         <!-- Button which navigates the user back to the gameplay.html page -->
         <button id="cancel-ability" onclick="window.location.href = 'gameplay.html'" class="pure-button button-primary">
             <i class="fa-solid fa-arrow-left"></i>
@@ -42,17 +51,21 @@
         function setup() {
             return {
                 roles: ["werewolf", "villager", "seer", "tracker", "saint", "gossip", "minion", "astrologer", "drifter"],
-                players: [],                
+                players: [],
+                playersToView: [],
                 abilityMessage: '',
                 holdTimeout: null,                
                 specialAbilityVisible: false,
                 showMainAbilityButton: true,
                 showTrackerButtons: false,
                 audio: new Audio('sounds/power_activated.mp3'),
+                role: null,
+                selectedPlayer: null,
 
-                getQueryParams() {
+                getRole() {
                     const params = new URLSearchParams(window.location.search);
-                    return params.get('role');
+                    this.role = params.get('role');                    
+                    return this.role;
                 },
 
                 loadPlayersFromLocalStorage() {
@@ -98,7 +111,7 @@
 
                 init() {
                     this.loadPlayersFromLocalStorage();
-                    const role = this.getQueryParams();
+                    const role = this.getRole();
 
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
                     this.players = this.players.map(player => ({ ...player, usedAbility: false }));
@@ -136,7 +149,7 @@
                 revealAbilityControls() {
                     
                     this.specialAbilityVisible = true;                    
-                    const role = this.getQueryParams();                    
+                    const role = this.getRole();                    
 
                     // If the role is tracker, display the tracking buttons and hide the main special ability button
                     if (role === 'tracker') {                        
@@ -144,9 +157,15 @@
                         this.showTrackerButtons = true;
                     }
 
+                    // If the role is seer, display the seer controls
+                    if (role === 'seer') {
+                        this.showSeerControls = true;
+                        this.playersToView = this.players.filter(player => player.role && player.role !== 'seer');
+                    }
+
                 },                
                 activateSpecialAbility(trackDirection=null, character=null) {
-                    const role = this.getQueryParams();
+                    const role = this.getRole();
                     const currentPlayer = this.players.find(player => player.role === role);
                     const specialAbilityDiv = document.getElementById('specialAbility');
                     const abilityMessage = document.getElementById('abilityMessage');                    
@@ -160,6 +179,21 @@
                         const werewolfPlayers = this.players.filter(player => player.role === 'werewolf');
                         const randomWerewolf = werewolfPlayers[Math.floor(Math.random() * werewolfPlayers.length)];
                         abilityMessage.textContent = randomWerewolf ? `${randomWerewolf.name} is a werewolf!` : 'No werewolf found';
+                    } else if (role === 'seer') {
+                        // The seer can choose to see the role of any player they choose.
+                        const playerSelect = document.getElementById('playerSelect');
+                        const selectedPlayerName = playerSelect.value;
+                        const selectedPlayer = this.players.find(player => player.name === selectedPlayerName);
+                        
+                        if (selectedPlayer) {
+                            abilityMessage.textContent = `${selectedPlayer.name} is a ${selectedPlayer.role}`;
+                        } else {
+                            abilityMessage.textContent = 'No player selected';
+                        }
+
+                        // Hide the seer controls
+                        this.showSeerControls = false;
+                    
                     } else if (role === 'astrologer') {
                         // Get all the special roles in this game except werewolf, villager, and astrologer
                         const possibleRoles = this.players
