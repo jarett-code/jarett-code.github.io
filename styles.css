@@ -168,7 +168,7 @@ i {
 }
 
 .trackerButton {
-    margin: 0 30px;
+    margin: 0 50px;
 }
 
 #seerControls #playerSelect {
@@ -178,12 +178,12 @@ i {
 
 .slide-left-fade-out {
     opacity: 0;
-    transform: translateX(-100px) scale(0) rotate(360deg);    
+    transform: translateX(-120px) scale(0) rotate(360deg);    
     transition: opacity 2.5s ease-out, transform 2.5s ease-in-out    
 }
 .slide-right-fade-out {
     opacity: 0;
-    transform: translateX(+100px) scale(0) rotate(360deg);
+    transform: translateX(+120px) scale(0) rotate(360deg);
     transition: opacity 2.5s ease-out, transform 2.5s ease-in-out
 }
 
