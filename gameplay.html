@@ -19,14 +19,14 @@
                 const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false }));
                 localStorage.setItem('players', JSON.stringify(resetPlayers));
             }
-            localStorage.removeItem('gameStarted');
+            localStorage.removeItem('isGameStarted');
             window.location.href = 'setup.html';
         }
 
         function checkGameStartConditions() {
             const players = JSON.parse(localStorage.getItem('players'));
             if (players && players.every(player => player.role)) {
-                localStorage.setItem('gameStarted', 'true');
+                localStorage.setItem('isGameStarted', 'yes');
             } else {     
                 window.location.href = 'setup.html';
             }
@@ -42,7 +42,7 @@
     <div class="pure-g">
         <div class="panel">
             <h1>Game in progress</h1>
-            <p><small>You may scan a card to activate its ability.</small></p>
+            <p>You may scan a card to activate its ability.</p>
         </div>
         <div id="scan-area" class="panel clear">
             <span>Place card under here</span>

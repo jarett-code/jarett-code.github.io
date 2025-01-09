@@ -31,8 +31,8 @@ i {
     font-size: 14pt;
 }
 
-.special-ability {
-    display: none;
+.special-ability {   
+    display: flex;
     background-color: black;
     color: white;
     position: fixed;
@@ -78,10 +78,6 @@ i {
 
 .shrinking {
     animation: grow 4s reverse;
-}
-
-.trackerButton {
-    display: none;
 }
 
 .panel {

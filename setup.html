@@ -20,11 +20,7 @@
                 </button>
             </form>
             <p><small>Enter players in clock-wise order.</small></p>
-        </div>
-        <div id="readyMessage" class="panel" x-show="isScanStarted">
-            <p><strong>Scan the player cards!</strong></p>
-            <!-- <p><small>After dealing cards, first scan <span x-text="players[0].name"></span>. Continue <em>clock-wise</em>, ending with <span x-text="players[players.length - 1].name"></span>.</small></p> -->
-        </div>
+        </div>   
         <div class="panel" x-show="players.length > 0">
             <ol id="playerList">
                 <template x-for="(player, index) in players" :key="index">
@@ -50,8 +46,7 @@
         function setup() {
             return {
                 playerName: '',
-                players: [],
-                isScanStarted: false,
+                players: [],                
                 addPlayer() 
                 {
                     if (this.playerName) {
@@ -68,11 +63,13 @@
                     localStorage.setItem('players', JSON.stringify(this.players));
                 },
                 loadPlayersFromLocalStorage() {
-                    this.players = JSON.parse(localStorage.getItem('players'));
+                    const storedPlayers = JSON.parse(localStorage.getItem('players'));
+                    if (storedPlayers) {
+                        this.players = storedPlayers;
+                    }
                 },
-                startScan() {
-                    this.isScanStarted = true;
-                    localStorage.setItem('isScanStarted', 'true');
+                startScan() {                
+                    localStorage.setItem('isScanStarted', "yes");
                 },
                 init() {
                     this.loadPlayersFromLocalStorage();

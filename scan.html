@@ -4,229 +4,30 @@
     <title>Werewolf</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">        
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="scripts.js" defer></script>
-    <script>
-        const roles = ["werewolf", "villager", "seer", "tracker", "saint", "gossip", "minion", "astrologer"];
-        let players = [];
-        // Audio for the special ability
-        const audio = new Audio('sounds/power_activated.mp3');
-
-        function getQueryParams() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('role');
-        }
-
-        function loadPlayersFromLocalStorage() {
-            const storedPlayers = JSON.parse(localStorage.getItem('players'));
-            if (storedPlayers) {
-                players = storedPlayers;
-            }
-        }
-
-        function assignRole(role) {
-            for (let player of players) {
-                if (!player.role) {
-                    player.role = role;
-                    break;
-                }
-            }
-            savePlayersToLocalStorage();
-            updatePlayerList();
-            checkAllRolesAssigned();
-        }
-
-        function savePlayersToLocalStorage() {
-            localStorage.setItem('players', JSON.stringify(players));
-        }
-
-        function updatePlayerList() {
-            const playerList = document.getElementById('playerList');
-            playerList.innerHTML = '';
-            players.forEach(player => {
-                const li = document.createElement('li');
-                li.textContent = player.name + (player.role ? ' - Role assigned' : ' - No role assigned');
-                playerList.appendChild(li);
-            });
-        }
-
-        function checkAllRolesAssigned() {
-            const allAssigned = players.every(player => player.role);
-            if (allAssigned) {
-                // Display a 3-second countdown to let the user know the game is ready to start
-                let count = 3;
-                const countdown = setInterval(() => {
-                    if (count > 0) {
-                        document.getElementById('playerList').textContent = `Game starting in ${count}...`;
-                        count--;
-                    } else {
-                        clearInterval(countdown);
-                        window.location.href = 'gameplay.html';
-                    }
-                }, 1000);
-            }
-            else {
-                window.location.href = 'next_player_to_scan.html';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', (event) => {
-            loadPlayersFromLocalStorage();
-            const role = getQueryParams();    
-
-            // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
-            players = players.map(player => ({ ...player, usedAbility: false }));
-            savePlayersToLocalStorage();
-
-            // Assign roles only if the game has not started.
-            if (!localStorage.getItem('gameStarted')) {
-                if (roles.includes(role)) {
-                    assignRole(role);
-                    console.log('Role assigned:', role);
-                }
-            }
-            else {
-                revealAbilityControls();
-                if (role === 'tracker') {
-                    document.querySelectorAll('.trackerButton').forEach(button => {
-                        button.style.display = 'block';
-                    });
-                    document.getElementById('useAbilityButton').style.display = 'none';
-
-                }
-                else {                    
-                    document.getElementById('useAbilityButton').style.display = 'block';
-                }
-            }            
-            updatePlayerList();
-        });
-
-        // The gameplay abilities
-        function revealAbilityControls() {
-            document.getElementById('specialAbility').style.display = 'flex';
-        }
-
-        function activateSpecialAbility(trackDirection=null, character=null) {
-            const role = getQueryParams();
-            const currentPlayer = players.find(player => player.role === role);
-            const specialAbilityDiv = document.getElementById('specialAbility');
-            const abilityMessage = document.getElementById('abilityMessage');
-            specialAbilityDiv.style.display = 'flex';
-
-            if (currentPlayer.usedAbility) {
-                abilityMessage.textContent = 'You have already used your ability.';
-                return;
-            }
-
-            if (role === 'saint') {
-                const werewolfPlayers = players.filter(player => player.role === 'werewolf');
-                const randomWerewolf = werewolfPlayers[Math.floor(Math.random() * werewolfPlayers.length)];
-                abilityMessage.textContent = randomWerewolf ? `${randomWerewolf.name} is a werewolf!` : 'No werewolf found';
-            } else if (role === 'astrologer') {
-                // Get all the special roles in this game except werewolf, villager, and astrologer
-                const possibleRoles = players
-                    .filter(player => player.role && player.role !== 'werewolf' && player.role !== 'villager' && player.role !== 'astrologer')
-                    .map(player => player.role);
-                // Now, pick a random role from the possible roles
-                const randomRole = possibleRoles[Math.floor(Math.random() * possibleRoles.length)];
-                abilityMessage.textContent = randomRole ? `The ${randomRole} is in play` : 'No special roles found';
-            } else if (role === 'tracker') {
-                // The tracker chooses either half the players in the list to determine if a wolf is among them.
-                // Get the total player count
-                const totalPlayers = players.length;
-                // Get the position of the current player
-                const currentPlayerIndex = players.findIndex(player => player.role === 'tracker');
-                const numberToBeTracked = Math.floor(totalPlayers / 2);
-                let playersToTrack = [];
-
-                if (trackDirection == 'left') {
-                    // for loop for the number to be tracked
-                    for (let i = 1; i <= numberToBeTracked; i++) {
-                        let playerToTrackIndex = currentPlayerIndex + i;
-                        if (playerToTrackIndex > totalPlayers-1) {
-                            playerToTrackIndex = playerToTrackIndex - totalPlayers;
-                        }
-                        playersToTrack.push(players[playerToTrackIndex]);
-                    }
-                }
-                else if (trackDirection == 'right') {
-                    // for loop for the number to be tracked
-                    for (let i = 1; i <= numberToBeTracked; i++) {
-                        let playerToTrackIndex = currentPlayerIndex - i;
-                        if (playerToTrackIndex < 0) {
-                            playerToTrackIndex = totalPlayers + playerToTrackIndex;
-                        }
-                        playersToTrack.push(players[playerToTrackIndex]);
-                    }
-                }
-                trackedPlayerNamesString = playersToTrack.map(player => player.name).join(', ');
-                const werewolfWasFound = playersToTrack.find(player => player.role === 'werewolf');
-                abilityMessage.textContent = werewolfWasFound ? `A werewolf hides amongst ${trackedPlayerNamesString}.` : `${trackedPlayerNamesString} are not werewolves.`;
-
-            } else {
-                abilityMessage.textContent = "You're bluffing, right?";
-            }
-
-            // Activate special effects
-            specialEffects(role);
-            
-            // Set a flag to indicate that the player has used their ability
-            currentPlayer.usedAbility = true;
-            savePlayersToLocalStorage();                        
-        }
-
-        function specialEffects(role=null) {
-            // Play the sound effect            
-            audio.play();
-
-            // Animation
-            const useAbilityButton = document.getElementById('useAbilityButton');           
-            
-            useAbilityButton.classList.add('fade-out');
-            useAbilityButton.addEventListener('transitionend', () => {
-                useAbilityButton.style.display = 'none';
-            }, { once: true });            
-
-            if (role === "tracker") {
-                // Hide the track buttons after the ability is used
-                document.getElementById('trackLeftButton').classList.add('slide-right-fade-out');
-                document.getElementById('trackRightButton').classList.add('slide-left-fade-out');
-                // document.querySelectorAll('.trackerButton').forEach(button => {                  
-                //     button.classList.add('slide-left');
-                //     button.classList.add('fade-out');                    
-                // });                                
-            }    
-            
-
-            const abilityEffect = document.getElementById('ability-effect');
-            abilityEffect.classList.add('growing');
-
-            const abilityMessage = document.getElementById('abilityMessage');
-            // show the ability message with a fade in effect
-            abilityMessage.style.display = 'block';
-        }
-    </script>
 </head>
-<body>
-    <div id="player-container" class="panel">
-        <ol id="playerList"></ol>
-    </div>    
-    <div id="specialAbility" class="special-ability">
-        <p id="abilityMessage"></p>
+<body x-data="setup()">    
+    <div class="panel">
+        <h1>Scan player cards</h1>
+        <p id="gameInfo">Scan the player cards to assign roles.</p>
+    </div>
+
+    <div id="specialAbility" class="special-ability" x-show="specialAbilityVisible">        
+        <p id="abilityMessage" x-text="abilityMessage"></p>
         <div id="ability-effect"></div>
         <!-- Ability buttons -->
-        <button id="useAbilityButton" class="pure-button" onclick="activateSpecialAbility()">
-            <!-- &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -->
-
-            <!-- touch icon -->
+        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="activateSpecialAbility()">
+            <!-- <i class="fa-solid fa-wand-sparkles"></i> -->
             <i class="fa-solid fa-fingerprint"></i>
         </button>
-        <button id="trackLeftButton" class="trackerButton pure-button button-primary" onclick="activateSpecialAbility(trackDirection='left')">
+        <button id="trackLeftButton" x-show="showTrackerButtons" class="trackerButton pure-button button-primary" @click="activateSpecialAbility(trackDirection='left')">
             <i class="fa-solid fa-arrow-left"></i>
             Track left
         </button>
-        <button id="trackRightButton" class="trackerButton pure-button button-primary" onclick="activateSpecialAbility(trackDirection='right')">
+        <button id="trackRightButton" x-show="showTrackerButtons" class="trackerButton pure-button button-primary" @click="activateSpecialAbility(trackDirection='right')">
             Track right
             <i class="fa-solid fa-arrow-right"></i>
         </button>
@@ -236,5 +37,210 @@
             Go back
         </button>
     </div>
+
+    <script>
+        function setup() {
+            return {
+                roles: ["werewolf", "villager", "seer", "tracker", "saint", "gossip", "minion", "astrologer", "drifter"],
+                players: [],                
+                abilityMessage: '',
+                holdTimeout: null,                
+                specialAbilityVisible: false,
+                showMainAbilityButton: true,
+                showTrackerButtons: false,
+                audio: new Audio('sounds/power_activated.mp3'),
+
+                getQueryParams() {
+                    const params = new URLSearchParams(window.location.search);
+                    return params.get('role');
+                },
+
+                loadPlayersFromLocalStorage() {
+                    const storedPlayers = JSON.parse(localStorage.getItem('players'));
+                    if (storedPlayers) {
+                        this.players = storedPlayers;
+                    }
+                },
+
+                assignRole(role) {
+                    // Get the next unassigned player and assign the role
+                    for (let player of this.players) {
+                        if (!player.role) {
+                            player.role = role;
+                            break;
+                        }
+                    }
+                    this.savePlayersToLocalStorage();                   
+                },          
+
+                savePlayersToLocalStorage() {
+                    localStorage.setItem('players', JSON.stringify(this.players));
+                },
+
+                allRolesAreAssigned() {
+                    return this.players.every(player => player.role);
+                },
+
+                startTheGame() {                    
+                    // Display a 3-second countdown to let the user know the game is ready to start
+                    let count = 3;
+                    const countdown = setInterval(() => {
+                        if (count > 0) {
+                            document.getElementById('gameInfo').textContent = `Game starting in ${count}...`;
+                            count--;
+                        } else {
+                            clearInterval(countdown);
+                            window.location.href = 'gameplay.html';
+                        }
+                    }, 1000);
+                  
+                },             
+
+                init() {
+                    this.loadPlayersFromLocalStorage();
+                    const role = this.getQueryParams();
+
+                    // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
+                    this.players = this.players.map(player => ({ ...player, usedAbility: false }));
+
+                    let isGameStarted = localStorage.getItem('isGameStarted');
+
+                    // Assign roles only if the game has not started.
+                    if (localStorage.getItem('isScanStarted') && !localStorage.getItem('isGameStarted')) {               
+
+                        // Check if roles still need to be assigned
+                        if (!this.allRolesAreAssigned()) {
+                            // The role must exist in the roles array
+                            if (this.roles.includes(role)) {
+                                this.assignRole(role);
+                            }
+                        }
+
+                        // If all roles have now been assigned, start the game -- otherwise go to the next player to scan
+                        if (this.allRolesAreAssigned()) {
+                            localStorage.removeItem('isScanStarted');                          
+                            this.startTheGame();
+                        }
+                        else {
+                            window.location.href = 'next_player_to_scan.html';
+                        }
+                       
+                    }
+                        
+                    // If the game has started, the scanning function acivates the role's special ability
+                    if (localStorage.getItem('isGameStarted')) {                    
+                        this.revealAbilityControls();                       
+                    }
+                },
+
+                revealAbilityControls() {
+                    
+                    this.specialAbilityVisible = true;                    
+                    const role = this.getQueryParams();                    
+
+                    // If the role is tracker, display the tracking buttons and hide the main special ability button
+                    if (role === 'tracker') {                        
+                        this.showMainAbilityButton = false;
+                        this.showTrackerButtons = true;
+                    }
+
+                },
+                activateSpecialAbility(trackDirection=null, character=null) {
+                    const role = this.getQueryParams();
+                    const currentPlayer = this.players.find(player => player.role === role);
+                    const specialAbilityDiv = document.getElementById('specialAbility');
+                    const abilityMessage = document.getElementById('abilityMessage');                    
+
+                    if (currentPlayer.usedAbility) {
+                        abilityMessage.textContent = 'You have already used your ability.';
+                        return;
+                    }
+
+                    if (role === 'saint') {
+                        const werewolfPlayers = this.players.filter(player => player.role === 'werewolf');
+                        const randomWerewolf = werewolfPlayers[Math.floor(Math.random() * werewolfPlayers.length)];
+                        abilityMessage.textContent = randomWerewolf ? `${randomWerewolf.name} is a werewolf!` : 'No werewolf found';
+                    } else if (role === 'astrologer') {
+                        // Get all the special roles in this game except werewolf, villager, and astrologer
+                        const possibleRoles = this.players
+                            .filter(player => player.role && player.role !== 'werewolf' && player.role !== 'villager' && player.role !== 'astrologer')
+                            .map(player => player.role);
+                        // Now, pick a random role from the possible roles
+                        const randomRole = possibleRoles[Math.floor(Math.random() * possibleRoles.length)];
+                        abilityMessage.textContent = randomRole ? `The ${randomRole} is in play` : 'No special roles found';
+                    } else if (role === 'tracker') {
+                        // The tracker chooses either half the players in the list to determine if a wolf is among them.
+                        // Get the total player count
+                        const totalPlayers = this.players.length;
+                        // Get the position of the current player
+                        const currentPlayerIndex = this.players.findIndex(player => player.role === 'tracker');
+                        const numberToBeTracked = Math.floor(totalPlayers / 2);
+                        let playersToTrack = [];
+
+                        if (trackDirection == 'left') {
+                            // for loop for the number to be tracked
+                            for (let i = 1; i <= numberToBeTracked; i++) {
+                                let playerToTrackIndex = currentPlayerIndex + i;
+                                if (playerToTrackIndex > totalPlayers-1) {
+                                    playerToTrackIndex = playerToTrackIndex - totalPlayers;
+                                }
+                                playersToTrack.push(this.players[playerToTrackIndex]);
+                            }
+                        }
+                        else if (trackDirection == 'right') {
+                            // for loop for the number to be tracked
+                            for (let i = 1; i <= numberToBeTracked; i++) {
+                                let playerToTrackIndex = currentPlayerIndex - i;
+                                if (playerToTrackIndex < 0) {
+                                    playerToTrackIndex = totalPlayers + playerToTrackIndex;
+                                }
+                                playersToTrack.push(this.players[playerToTrackIndex]);
+                            }
+                        }
+                        trackedPlayerNamesString = playersToTrack.map(player => player.name).join(', ');
+                        const werewolfWasFound = playersToTrack.find(player => player.role === 'werewolf');
+                        abilityMessage.textContent = werewolfWasFound ? `A werewolf hides amongst ${trackedPlayerNamesString}.` : `No werewolves amongst ${trackedPlayerNamesString}.`;
+
+                    } else {
+                        abilityMessage.textContent = "You're bluffing, right?";
+                    }
+
+                    // Activate special effects
+                    this.specialEffects(role);
+                    
+                    // Set a flag to indicate that the player has used their ability
+                    currentPlayer.usedAbility = true;
+                    this.savePlayersToLocalStorage();                        
+                },
+
+                specialEffects(role=null) {
+                    // Play the sound effect            
+                    this.audio.play();
+
+                    // Animation for main controls
+                    const useAbilityButton = document.getElementById('useAbilityButton');
+                    useAbilityButton.classList.add('fade-out');
+                    useAbilityButton.addEventListener('transitionend', () => {
+                        useAbilityButton.style.display = 'none';
+                    }, { once: true });            
+
+                    // Animation for tracker controls
+                    if (role === "tracker") {
+                        // Hide the track buttons after the ability is used
+                        document.getElementById('trackLeftButton').classList.add('slide-right-fade-out');
+                        document.getElementById('trackRightButton').classList.add('slide-left-fade-out');                          
+                    }
+
+                    // Animation for the background effect
+                    const abilityEffect = document.getElementById('ability-effect');
+                    abilityEffect.classList.add('growing');
+
+                    // Animation for the special ability message
+                    const abilityMessage = document.getElementById('abilityMessage');                    
+                    abilityMessage.style.display = 'block';
+                }
+            }
+        }
+    </script>
 </body>
 </html>

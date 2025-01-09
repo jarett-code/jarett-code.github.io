@@ -4,9 +4,10 @@ function endGame() {
     if (storedPlayers) {
         // Reset all players to their initial state
         const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false }));
-        localStorage.setItem('players', JSON.stringify(resetPlayers));                
+        localStorage.setItem('players', JSON.stringify(resetPlayers));        
     }
-    localStorage.removeItem('gameStarted');
+    localStorage.removeItem('isGameStarted');
+    localStorage.removeItem('isScanStarted');
     window.location.href = 'setup.html';
 }
 
@@ -53,24 +54,4 @@ if (resetButton) {
     });
 }
 
-let holdTimeout;
-
-// Special ability effect
-// function startHold() {
-//     const abilityEffect = document.getElementById('ability-effect');
-//     abilityEffect.classList.remove('shrinking');
-//     abilityEffect.classList.add('growing');
-//     holdTimeout = setTimeout(() => {        
-//         activateSpecialAbility();     
-//         // Play sound         
-//         audio.play();
-//     }, 4000);
-// }
-
-// function endHold() {
-//     clearTimeout(holdTimeout);
-//     const abilityEffect = document.getElementById('ability-effect');
-//     abilityEffect.classList.remove('growing');
-//     abilityEffect.classList.add('shrinking');
-// }
 
