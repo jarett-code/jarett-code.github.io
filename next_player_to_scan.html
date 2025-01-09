@@ -5,44 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">     
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link rel="stylesheet" href="styles.css">
-    <script src="scripts.js" defer></script>
-    <script>
-        function loadPlayersFromLocalStorage() {
-            const storedPlayers = JSON.parse(localStorage.getItem('players'));
-            return storedPlayers || [];
-        }
-
-        function getNextPlayerWithoutRole(players) {
-            return players.find(player => !player.role);
-        }
-
-        function displayNextPlayer() {
-            const players = loadPlayersFromLocalStorage();
-            const nextPlayer = getNextPlayerWithoutRole(players);
-            const messageElement = document.getElementById('player-name');
-            if (nextPlayer) {
-                messageElement.textContent = nextPlayer.name;
-            } else {                
-                window.location.href = 'gameplay.html';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', (event) => {
-            displayNextPlayer();
-        });
-    </script>
+    <script src="scripts.js" defer></script>    
 </head>
-<body>
+<body x-data="nextPlayerToScan()">
     <div class="pure-g">
         <div class="panel">
+            <h1>Next player to scan</h1>
             <p>
                 <i class="fa-solid fa-expand"></i>
-                Scan <strong><span id="player-name"></span></strong>'s card.
-            </p>    
+                Scan <strong><span x-text="nextPlayerName"></span></strong>'s card.                
+            </p>               
         </div> 
         <div id="scan-area" class="panel clear">
-            <span>Place card under here</span>
+            <span>Place card under here.</span>
         </div>
         <div class="panel clear">
             <div class="progress-display">
@@ -57,6 +34,34 @@
             </button>
         </div>
     </div>
+
+    <script>
+        function nextPlayerToScan() {
+            return {
+                players: [],
+                nextPlayerName: 'Loading...',
+                loadPlayersFromLocalStorage() {
+                    const storedPlayers = JSON.parse(localStorage.getItem('players'));
+                    return storedPlayers || [];
+                },
+                getNextPlayerWithoutRole(players) {
+                    return players.find(player => !player.role);
+                },
+                displayNextPlayer() {
+                    this.players = this.loadPlayersFromLocalStorage();
+                    const nextPlayer = this.getNextPlayerWithoutRole(this.players);
+                    if (nextPlayer) {
+                        this.nextPlayerName = nextPlayer.name;
+                    } else {
+                        window.location.href = 'gameplay.html';
+                    }
+                },               
+                init() {
+                    this.displayNextPlayer();
+                }
+            }
+        }
+    </script>
     
 </body>
 </html>

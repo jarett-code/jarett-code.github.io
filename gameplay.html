@@ -7,45 +7,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">        
     <link rel="stylesheet" href="styles.css">
     <script src="scripts.js" defer></script>
-    <script>    
-
-        function loadPlayersFromLocalStorage() {
-            const storedPlayers = JSON.parse(localStorage.getItem('players'));
-        }
-
-        function endGame() {
-            const storedPlayers = JSON.parse(localStorage.getItem('players'));
-            if (storedPlayers) {
-                const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false }));
-                localStorage.setItem('players', JSON.stringify(resetPlayers));
-            }
-            localStorage.removeItem('isGameStarted');
-            window.location.href = 'setup.html';
-        }
-
-        function checkGameStartConditions() {
-            const players = JSON.parse(localStorage.getItem('players'));
-            if (players && players.every(player => player.role)) {
-                localStorage.setItem('isGameStarted', 'yes');
-            } else {     
-                window.location.href = 'setup.html';
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', (event) => {
-            loadPlayersFromLocalStorage();
-            checkGameStartConditions();
-        });
-    </script>
 </head>
-<body>
+<body x-data="gameplay()">
     <div class="pure-g">
         <div class="panel">
             <h1>Game in progress</h1>
             <p>You may scan a card to activate its ability.</p>
         </div>
         <div id="scan-area" class="panel clear">
-            <span>Place card under here</span>
+            <span>Place card under here.</span>
         </div>
         
         <div class="panel clear">
@@ -55,11 +25,35 @@
                 <progress id="progress-bar" max="100" value="0"></progress>            
                 <br>
             </div>
-            <button id="end-game" class="pure-u-1-2 pure-button">
+            <button id="end-game" @click="endGame" class="pure-u-1-2 pure-button">
                 <i class="fa-solid fa-hourglass-end"></i>
                 Hold to end game
             </button>            
         </div>        
     </div>
+    <script>
+        function gameplay() {
+            return {
+                players: [],
+                loadPlayersFromLocalStorage() {
+                    const storedPlayers = JSON.parse(localStorage.getItem('players'));
+                    if (storedPlayers) {
+                        this.players = storedPlayers;
+                    }
+                },        
+                checkGameStartConditions() {
+                    if (this.players.every(player => player.role)) {
+                        localStorage.setItem('isGameStarted', 'yes');
+                    } else {
+                        window.location.href = 'setup.html';
+                    }
+                },
+                init() {
+                    this.loadPlayersFromLocalStorage();
+                    this.checkGameStartConditions();
+                }
+            }
+        }
+    </script>
 </body>
 </html>
