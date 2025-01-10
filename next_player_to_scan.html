@@ -9,15 +9,22 @@
     <link rel="stylesheet" href="styles.css">
     <script src="scripts.js" defer></script>    
 </head>
-<body x-data="nextPlayerToScan()">
+<body x-data="nextCardToScan()">
     <div class="pure-g">
-        <div class="panel">
+        <div class="panel" x-show="!allplayersHaveRoles">
             <h1>Next player to scan</h1>
             <p>
                 <i class="fa-solid fa-expand"></i>
-                Scan <strong><span x-text="nextPlayerName"></span></strong>'s card.                
+                Scan <strong><span x-text="nextPlayerName"></span></strong>'s card.
             </p>               
-        </div> 
+        </div>
+        <div class="panel" x-show="allplayersHaveRoles">
+            <h1>Scan the extra role cards</h1>
+            <p>
+                <i class="fa-solid fa-expand"></i>
+                Scanning <strong><span x-text="currentExtraCardBeingScanned">1</span></strong> of <strong>3</strong> extra role cards.
+            </p>               
+        </div>
         <div id="scan-area" class="panel clear">
             <span>Place card under here.</span>
         </div>
@@ -36,28 +43,52 @@
     </div>
 
     <script>
-        function nextPlayerToScan() {
+        function nextCardToScan() {
             return {
                 players: [],
+                allplayersHaveRoles: false,
+                allRollsScanned: false,
+                currentExtraCardBeingScanned: 1,
                 nextPlayerName: 'Loading...',
+
                 loadPlayersFromLocalStorage() {
                     const storedPlayers = JSON.parse(localStorage.getItem('players'));
-                    return storedPlayers || [];
+                    if (storedPlayers) {
+                        this.players = storedPlayers;
+                    }                    
                 },
-                getNextPlayerWithoutRole(players) {
-                    return players.find(player => !player.role);
+                getNextPlayerWithoutRole() {                   
+                    return this.players.find(player => !player.role);
                 },
                 displayNextPlayer() {
-                    this.players = this.loadPlayersFromLocalStorage();
-                    const nextPlayer = this.getNextPlayerWithoutRole(this.players);
+                    // Displays the next player to scan                    
+                    const nextPlayer = this.getNextPlayerWithoutRole();
                     if (nextPlayer) {
                         this.nextPlayerName = nextPlayer.name;
                     } else {
-                        window.location.href = 'gameplay.html';
+                        // window.location.href = 'gameplay.html';
+                        alert("I was never given a name")
                     }
-                },               
+                }, 
+                loadCurrentExtraCardNumber() {
+                    // Gets whether with is the first, second or third extra role card to scan
+                    extraRoles = JSON.parse(localStorage.getItem('extraRoles'));
+                    if (extraRoles) {
+                        this.currentExtraCardBeingScanned = extraRoles.length + 1;
+                    }
+                },
                 init() {
-                    this.displayNextPlayer();
+                    this.loadPlayersFromLocalStorage();
+                    
+                    // If a player has no role, display their name. Otherwise display the instruction for scanning extra roles.
+                    const nextPlayer = this.getNextPlayerWithoutRole();
+
+                    if (nextPlayer) {
+                        this.nextPlayerName = nextPlayer.name;
+                    } else {
+                        this.allplayersHaveRoles = true;
+                        this.loadCurrentExtraCardNumber();
+                    }
                 }
             }
         }

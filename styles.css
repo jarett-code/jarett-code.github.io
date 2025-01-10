@@ -213,6 +213,32 @@ i {
     z-index: 1;
 }
 
+@keyframes gossip1FadeIn {
+    from { opacity: 0; transform: scale(0.2) scaleX(0.5) translateX(200%) rotate(-180deg); color: #666;}
+    to { opacity: 1; transform: scale(1) scaleX(1) translateX(0%); color: white;}
+}
+
+@keyframes gossip2FadeIn {
+    from { opacity: 0; transform: scale(0.2) scaleX(0.5) translateX(-200%) rotate(180deg); color: #666;}
+    to { opacity: 1; transform: scale(1) scaleX(1) translateX(0%); color: white;}
+}
+
+#gossip1, #gossip2 {
+    font-size: 14pt;
+    font-family: 'SpecialPower', sans-serif;
+    padding:30px;
+}
+
+#gossip1 {
+    animation: gossip1FadeIn 4s ease;
+}
+
+#gossip2 {
+    animation: gossip2FadeIn 4s ease;
+}
+
+
+
 /* Buttons */
 .pure-button {
     border-radius: 5px;

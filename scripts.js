@@ -6,8 +6,11 @@ function endGame() {
         const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false }));
         localStorage.setItem('players', JSON.stringify(resetPlayers));        
     }
+    // Reset extra roles
+    localStorage.removeItem('extraRoles');
+
     localStorage.removeItem('isGameStarted');
-    localStorage.removeItem('isScanStarted');
+    localStorage.removeItem('isScanStarted');    
     window.location.href = 'setup.html';
 }
 

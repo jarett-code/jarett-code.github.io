@@ -17,9 +17,12 @@
 
     <div id="specialAbility" class="special-ability" x-show="specialAbilityVisible">        
         <p id="abilityMessage" x-text="abilityMessage"></p>
+        <!-- Gossip messages -->
+        <p id="gossip1" x-text="gossip1" x-show="gossip1"></p>
+        <p id="gossip2" x-text="gossip2" x-show="gossip2"></p>
         <div id="ability-effect"></div>
         <!-- The main ability button -->
-        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="activateRole()" x-transition.opacity.scale.30.duration.1500ms>
+        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="activateRole()" x-transition.opacity.scale.30.duration.1500ms :disabled="getCurrentPlayer().usedAbility">
             <i class="fa-solid fa-hands-holding-circle"></i>
             <!-- <i class="fa-solid fa-eye"></i> -->
         </button>
@@ -54,8 +57,11 @@
             return {
                 roles: ["werewolf", "villager", "seer", "tracker", "saint", "gossip", "minion", "astrologer", "drifter"],
                 players: [],
+                extraRoles:[],
                 playersToView: [],
                 abilityMessage: '',
+                gossip1: null,
+                gossip2: null,
                 holdTimeout: null,                
                 specialAbilityVisible: false,
                 showMainAbilityButton: true,
@@ -63,11 +69,17 @@
                 showTrackerButtons: false,
                 audio: new Audio('sounds/power_activated.mp3'),
                 role: null,
-                selectedPlayer: null,
+                selectedPlayer: null,                
 
                 getRole() {
                     const params = new URLSearchParams(window.location.search);
-                    this.role = params.get('role');                    
+                    // The role must exist in the roles array
+                    if (!this.roles.includes(params.get('role'))) {
+                        alert('Invalid role scanned');
+                    }
+                    else {
+                        this.role = params.get('role');
+                    }
                     return this.role;
                 },
 
@@ -82,6 +94,13 @@
                     }
                 },
 
+                loadExtraRolesFromLocalStorage() {
+                    const storedExtraRoles = JSON.parse(localStorage.getItem('extraRoles'));
+                    if (storedExtraRoles) {
+                        this.extraRoles = storedExtraRoles;
+                    }
+                },
+
                 assignRole(role) {
                     // Get the next unassigned player and assign the role
                     for (let player of this.players) {
@@ -91,7 +110,13 @@
                         }
                     }
                     this.savePlayersToLocalStorage();                   
-                },          
+                },
+
+                assignExtraRole() {                    
+                    // Push the role to the extraRoles array and save it to local storage
+                    this.extraRoles.push(this.getRole());
+                    localStorage.setItem('extraRoles', JSON.stringify(this.extraRoles));
+                },
 
                 savePlayersToLocalStorage() {
                     localStorage.setItem('players', JSON.stringify(this.players));
@@ -102,7 +127,11 @@
                 },
 
                 startTheGame() {                    
-                    // Display a 3-second countdown to let the user know the game is ready to start
+                    // Prepare the game and display a 3-second countdown
+
+                    localStorage.removeItem('isScanStarted');
+                    localStorage.setItem('isGameStarted', true);
+
                     let count = 3;
                     const countdown = setInterval(() => {
                         if (count > 0) {
@@ -118,38 +147,36 @@
 
                 init() {
                     this.loadPlayersFromLocalStorage();
-                    const role = this.getRole();
+                    this.loadExtraRolesFromLocalStorage();
+                    this.getRole();
 
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
                     this.players = this.players.map(player => ({ ...player, usedAbility: false }));
+                    // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
 
-                    let isGameStarted = localStorage.getItem('isGameStarted');
+                    // If the game has started, the scan activates the special ability screen.
+                    if (localStorage.getItem('isGameStarted')) {
+                        this.specialAbilityVisible = true;
+                    }
 
                     // Assign roles only if the game has not started.
-                    if (localStorage.getItem('isScanStarted') && !localStorage.getItem('isGameStarted')) {               
-
-                        // Check if roles still need to be assigned
-                        if (!this.allRolesAreAssigned()) {
-                            // The role must exist in the roles array
-                            if (this.roles.includes(role)) {
-                                this.assignRole(role);
-                            }
+                    if (localStorage.getItem('isScanStarted') && !localStorage.getItem('isGameStarted')) {
+                        
+                        // If all player roles have been assigned, scan the extra roles.
+                        if (this.allRolesAreAssigned()) {
+                            this.assignExtraRole();
+                        }
+                        else {
+                            this.assignRole(this.getRole());
                         }
 
-                        // If all roles have now been assigned, start the game -- otherwise go to the next player to scan
-                        if (this.allRolesAreAssigned()) {
-                            localStorage.removeItem('isScanStarted');                          
+                        // If all necessary cards have been scanned, start the game
+                        if (this.allRolesAreAssigned() && this.extraRoles.length === 3) {
                             this.startTheGame();
                         }
                         else {
                             window.location.href = 'next_player_to_scan.html';
                         }
-                       
-                    }
-                        
-                    // If the game has started, the scan activates the special ability screen.
-                    if (localStorage.getItem('isGameStarted')) {                    
-                        this.specialAbilityVisible = true;
                     }
                 },
 
@@ -169,6 +196,7 @@
                         return;
                     }
 
+                    // 1. Advanced roles: additional required controls are displayed
                     // If the role is tracker, display the tracking buttons and hide the main special ability button
                     if (role === 'tracker') {                                                
                         this.showTrackerButtons = true;
@@ -179,14 +207,20 @@
                         this.showSeerControls = true;
                         this.playersToView = this.players.filter(player => player.role && player.role !== 'seer');
                         return;
-                    }                    
+                    }
+
+                    // 2. Basic roles: no additional controls are required, just perform the ability immediately
                     if (role === 'saint') {
                         this.saintAbility();                    
                     } else if (role === 'astrologer') {
                         this.astrologerAbility();
+                    } else if (role === 'drifter') {
+                        this.drifterAbility();
+                    } else if (role === 'gossip') {
+                        this.gossipAbility();
                     } else {
                         abilityMessage.textContent = "You're bluffing, right?";
-                    }
+                    }                    
 
                     // Activate special effects
                     this.specialEffects(role);
@@ -213,6 +247,50 @@
                     // Now, pick a random role from the possible roles
                     const randomRole = possibleRoles[Math.floor(Math.random() * possibleRoles.length)];
                     abilityMessage.textContent = randomRole ? `The ${randomRole} is present` : 'No special roles found';
+                },
+
+                drifterAbility() {
+                    // The drifter discovers 2 roles that are not in play
+                    
+                    // Pick two random roles from the 3 extras
+                    const drifterResult = this.extraRoles.sort(() => 0.5 - Math.random()).slice(0, 2);
+                    abilityMessage.textContent = `No ${drifterResult.join(' or ')} present`;
+                },
+
+                gossipAbility() {
+                    // The gossip learns something about 2 random players. One is true, the other is true or false.
+
+                    // Get all players except the gossip, and shuffle them
+                    const players = this.players.filter(player => player.role !== 'gossip');
+                    let randomPlayers = players.sort(() => 0.5 - Math.random());
+
+                    console.log(randomPlayers);
+
+                    // Pop off two random players
+                    trueRole = randomPlayers.pop();
+                    maybeRole = randomPlayers.pop();
+
+                    // Prepare the true gossip by picking out the first random player.
+                    trueGossip = `${trueRole.name} may be a ${trueRole.role}`;
+
+                    // Prepare the potentially false gossip -- 50% chance
+                    const isTrueGossip = Math.random() < 0.5;
+
+                    if (isTrueGossip) {                       
+                        maybeGossip = `${maybeRole.name} may be a ${maybeRole.role}`;
+                    } else {
+                        maybeGossip = `${maybeRole.name} may be a ${randomPlayers.pop().role}`;
+                    }
+
+                    // Now that we have our 2 gossips, choose a random order to display them
+                    const gossips = [trueGossip, maybeGossip];
+                    const randomGossipOrder = gossips.sort(() => 0.5 - Math.random());                  
+                    
+                    console.log("trueGossip: " + trueGossip);
+                    console.log("maybeGossip: " + maybeGossip);
+                    
+                    this.gossip1 = randomGossipOrder[0];
+                    this.gossip2 = randomGossipOrder[1];                    
                 },
 
                 seerAbility() {
