@@ -13,6 +13,14 @@
     <div class="pure-g">
         <div class="panel">
             <h1>Game in progress</h1>
+            <div id="time-keeper">                
+                <p id="hourglass">
+                    <i class="fa-solid fa-hourglass-start" x-show="!halfwayPoint && !endPoint"></i>
+                    <i class="fa-solid fa-hourglass-half" x-show="halfwayPoint && !endPoint"></i>
+                    <i class="fa-solid fa-hourglass-end" x-show="endPoint"></i>
+                </p>
+                <p id="timer" x-show="timer" x-text="timer"></p>
+            </div>
             <p>You may scan a card to activate its ability.</p>
         </div>
         <div id="scan-area" class="panel clear">
@@ -27,7 +35,7 @@
                 <br>
             </div>
             <button id="end-game" @click="endGame" class="pure-u-1-2 pure-button">
-                <i class="fa-solid fa-hourglass-end"></i>
+                <i class="fa-solid fa-skull"></i>                
                 Hold to end game
             </button>            
         </div>        
@@ -36,6 +44,11 @@
         function setup() {
             return {
                 players: [],
+                timer: 0,
+                remainingTime: 0,
+                totalTime: 16,
+                halfwayPoint: false,
+                endPoint: false,
                 loadPlayersFromLocalStorage() {
                     const storedPlayers = JSON.parse(localStorage.getItem('players'));
                     if (storedPlayers) {
@@ -49,12 +62,67 @@
                         window.location.href = 'setup.html';
                     }
                 },
+                startTimer() {                    
+
+                    // If the game has started, check for a timer
+                    if (localStorage.getItem('isGameStarted') === "yes") {                       
+
+                        // Create a timer if it doesn't exist, otherwise get the remaining time
+                        if (localStorage.getItem('remainingTime') === null) {                            
+                            remainingTime = this.totalTime;        
+                        }
+                        else {                         
+                            remainingTime = localStorage.getItem('remainingTime');
+                        }
+                    } 
+                    
+                    let interval = setInterval(() => {
+                        if (remainingTime <= 0) {
+                            clearInterval(interval);
+                            localStorage.removeItem('remainingTime');
+                            this.timer = "Time's up! Vote!";
+                            localStorage.removeItem('isSecondHalf');
+                        } else {
+                            if (remainingTime <= this.totalTime / 10) {
+                                this.endPoint = true;
+                            }
+                            else if (remainingTime <= this.totalTime / 2) {
+                                localStorage.setItem('isSecondHalf', "yes");    
+                                this.halfwayPoint = true;            
+                            }
+                            else {
+                                localStorage.removeItem('isSecondHalf');
+                            }
+                            remainingTime--;
+                            // localStorage.setItem('remainingTime', remainingTime);
+                            this.updateTimerDisplay(remainingTime);
+                        }        
+                    }, 1000);
+                },       
+                updateTimerDisplay(remainingTime) {
+                    const minutes = Math.floor(remainingTime / 60);
+                    const seconds = remainingTime % 60;
+                    this.timer = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                },
                 init() {
                     this.loadPlayersFromLocalStorage();
                     this.checkGameStartConditions();
-                }
-            }        
+
+                    // Timer function                    
+                    this.startTimer(); 
+                }                
+            }
         }
+
+        // Save the timer before leaving the page
+        window.addEventListener('beforeunload', () => {
+            if (remainingTime > 0) {
+                localStorage.setItem('remainingTime', remainingTime);
+            }
+            else {
+                localStorage.removeItem('remainingTime');
+            }    
+        });
     </script>
 </body>
 </html>

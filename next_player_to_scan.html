@@ -46,8 +46,7 @@
         function nextCardToScan() {
             return {
                 players: [],
-                allplayersHaveRoles: false,
-                allRollsScanned: false,
+                allplayersHaveRoles: false,               
                 currentExtraCardBeingScanned: 1,
                 nextPlayerName: 'Loading...',
 
@@ -65,10 +64,11 @@
                     const nextPlayer = this.getNextPlayerWithoutRole();
                     if (nextPlayer) {
                         this.nextPlayerName = nextPlayer.name;
-                    } else {
-                        // window.location.href = 'gameplay.html';
-                        alert("I was never given a name")
                     }
+                    else {
+                        this.allplayersHaveRoles = true;
+                        this.nextPlayerName = null;
+                    }                    
                 }, 
                 loadCurrentExtraCardNumber() {
                     // Gets whether with is the first, second or third extra role card to scan
@@ -86,9 +86,15 @@
                     if (nextPlayer) {
                         this.nextPlayerName = nextPlayer.name;
                     } else {
-                        this.allplayersHaveRoles = true;
+                        this.allplayersHaveRoles = true;                        
                         this.loadCurrentExtraCardNumber();
+
+                        // IF the user somehow landed on this page after the scanning is complete, redirect them to the gameplay page
+                        if (this.currentExtraCardBeingScanned >= 3) {
+                            window.location.href = 'gameplay.html';
+                        }
                     }
+                    
                 }
             }
         }

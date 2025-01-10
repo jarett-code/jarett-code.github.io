@@ -46,7 +46,7 @@
             <br>
         </div>
         <!-- Button which navigates the user back to the gameplay.html page -->
-        <button id="cancel-ability" onclick="window.location.href = 'gameplay.html'" class="pure-button button-primary">
+        <button id="cancel-ability" onclick="window.location.href='gameplay.html'" class="pure-button button-primary">
             <i class="fa-solid fa-arrow-left"></i>
             Go back
         </button>
@@ -294,11 +294,25 @@
                 },
 
                 seerAbility() {
-                    // The seer can view the role of another seleplayer
+                    // The seer can view the role of another player. They'll get a true and false clue.
                     const selectedPlayer = this.players.find(player => player.name === this.selectedPlayer);
                     const abilityMessage = document.getElementById('abilityMessage');
+
+                    // Get all roles except the seer and the selected player
+                    let playerRoles = this.players
+                        .filter(player => player.role && player.role !== 'seer' && player.role !== selectedPlayer.role)
+                        .map(player => player.role);
+                    let allRoles = playerRoles.concat(this.extraRoles);
+
+                    // Shuffle the roles and grab one to use as the false role clue
+                    allRoles = allRoles.sort(() => 0.5 - Math.random());
+                    const falseRole = allRoles.pop();
+
+                    // Shuffle the false role with the player's real role
+                    letRoleClues = [selectedPlayer.role, falseRole].sort(() => 0.5 - Math.random());
+
                     if (selectedPlayer) {
-                        abilityMessage.textContent = `${selectedPlayer.name} is a ${selectedPlayer.role}`;
+                        abilityMessage.textContent = `${selectedPlayer.name} is either a ${letRoleClues[0]} or a ${letRoleClues[1]}`;
                     } else {
                         abilityMessage.textContent = 'Player not found';
                     }

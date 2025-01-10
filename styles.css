@@ -16,6 +16,7 @@ html {
     background-image: url('images/background_full.jpg');    
     background-repeat: no-repeat;
     background-position-x: center;
+    background-position-y: 80px;
     background-color: black;
     font-family: 'Wolfy', sans-serif;
 }
@@ -29,6 +30,17 @@ body {
 i {
     color: #666;
     font-size: 14pt;
+}
+
+#time-keeper {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+#time-keeper p {
+    padding: 4px 10px;
+    margin: 2px 0 0 0;
 }
 
 .special-ability {   
@@ -92,15 +104,27 @@ i {
 
 .panel h1 {
     margin-top: 0;
-    margin-bottom: 10px;
+    margin-bottom: 28px;
     font-size: 1.5em;
     font-weight: 600;
     color: #333;
 }
 
+.panel p {
+    margin: 8px 0 0 0;
+}
+
 .clear {      
     background: none;
     opacity: 1.0;
+}
+
+#playerForm {
+    margin-top: 30px;
+}
+
+#playerForm input {
+    margin:1px;
 }
 
 
@@ -137,7 +161,7 @@ i {
 }
 
 #start-game, #end-game {
-    padding: 24px 0;
+    padding: 20px 0;
     font-weight: 600;
     color: #666;    
 }

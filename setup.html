@@ -19,7 +19,7 @@
                     Add
                 </button>
             </form>
-            <p><small>Enter players in clock-wise order.</small></p>
+            <p>Enter players in clock-wise order.</p>
         </div>   
         <div class="panel" x-show="players.length > 0">
             <ol id="playerList">
@@ -46,9 +46,7 @@
         function setup() {
             return {
                 playerName: '',
-                players: [],
-                // make a array of 3 blank extra roles
-                // extraRoles: [],
+                players: [],                
                 addPlayer() 
                 {
                     if (this.playerName) {
