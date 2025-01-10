@@ -22,7 +22,7 @@
             <h1>Scan the extra role cards</h1>
             <p>
                 <i class="fa-solid fa-expand"></i>
-                Scanning <strong><span x-text="currentExtraCardBeingScanned">1</span></strong> of <strong>3</strong> extra role cards.
+                Scanning <strong><span x-text="currentExtraCardBeingScanned">1</span></strong> of <strong>3</strong>
             </p>               
         </div>
         <div id="scan-area" class="panel clear">
@@ -90,7 +90,7 @@
                         this.loadCurrentExtraCardNumber();
 
                         // IF the user somehow landed on this page after the scanning is complete, redirect them to the gameplay page
-                        if (this.currentExtraCardBeingScanned >= 3) {
+                        if (this.currentExtraCardBeingScanned > 3) {
                             window.location.href = 'gameplay.html';
                         }
                     }

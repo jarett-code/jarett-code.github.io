@@ -131,6 +131,7 @@
 
                     localStorage.removeItem('isScanStarted');
                     localStorage.setItem('isGameStarted', true);
+                    localStorage.removeItem('remainingTime');
 
                     let count = 3;
                     const countdown = setInterval(() => {
@@ -151,7 +152,7 @@
                     this.getRole();
 
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
-                    this.players = this.players.map(player => ({ ...player, usedAbility: false }));
+                    // this.players = this.players.map(player => ({ ...player, usedAbility: false }));
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
 
                     // If the game has started, the scan activates the special ability screen.
@@ -171,7 +172,7 @@
                         }
 
                         // If all necessary cards have been scanned, start the game
-                        if (this.allRolesAreAssigned() && this.extraRoles.length === 3) {
+                        if (this.allRolesAreAssigned() && this.extraRoles.length === 3) {                         
                             this.startTheGame();
                         }
                         else {
@@ -217,7 +218,18 @@
                     } else if (role === 'drifter') {
                         this.drifterAbility();
                     } else if (role === 'gossip') {
-                        this.gossipAbility();
+                        // For the gossip, the ability is performed once, and the results are saved for later
+                        // So if the the gossip clues have already been created, just display them and don't execute the ability again
+                        // Display the first gossip message during the first half of the game and both during the second half                       
+                        
+                        if (localStorage.getItem('firstGossip') && localStorage.getItem('secondGossip')) {                            
+                            this.gossip1 = localStorage.getItem('firstGossip');
+                            if (localStorage.getItem('isSecondHalf')) {                               
+                                this.gossip2 = localStorage.getItem('secondGossip');
+                            }
+                        } else {
+                            this.gossipAbility();
+                        }                      
                     } else {
                         abilityMessage.textContent = "You're bluffing, right?";
                     }                    
@@ -225,9 +237,11 @@
                     // Activate special effects
                     this.specialEffects(role);
                     
-                    // Set a flag to indicate that the player has used their ability
-                    currentPlayer.usedAbility = true;
-                    this.savePlayersToLocalStorage();                    
+                    // Set a flag to indicate that the player has used their ability, unless they are the gossip
+                    if (role !== 'gossip') {
+                        currentPlayer.usedAbility = true;
+                        this.savePlayersToLocalStorage();
+                    }                    
                 },
 
                 saintAbility() {
@@ -262,9 +276,7 @@
 
                     // Get all players except the gossip, and shuffle them
                     const players = this.players.filter(player => player.role !== 'gossip');
-                    let randomPlayers = players.sort(() => 0.5 - Math.random());
-
-                    console.log(randomPlayers);
+                    let randomPlayers = players.sort(() => 0.5 - Math.random());                   
 
                     // Pop off two random players
                     trueRole = randomPlayers.pop();
@@ -284,13 +296,19 @@
 
                     // Now that we have our 2 gossips, choose a random order to display them
                     const gossips = [trueGossip, maybeGossip];
-                    const randomGossipOrder = gossips.sort(() => 0.5 - Math.random());                  
-                    
-                    console.log("trueGossip: " + trueGossip);
-                    console.log("maybeGossip: " + maybeGossip);
-                    
+                    const randomGossipOrder = gossips.sort(() => 0.5 - Math.random());
+
                     this.gossip1 = randomGossipOrder[0];
-                    this.gossip2 = randomGossipOrder[1];                    
+
+                    // Only display the second gossip if it's halfway through the game, otherwise save it for later
+                    if (localStorage.getItem('isSecondHalf')) {                        
+                        this.gossip2 = randomGossipOrder[1];
+                    }
+
+                    // Save both gossips for later since the gossip can use their ability more that once.
+                    localStorage.setItem('firstGossip', randomGossipOrder[0]);
+                    localStorage.setItem('secondGossip', randomGossipOrder[1]);
+                    
                 },
 
                 seerAbility() {

@@ -21,7 +21,7 @@
                 </p>
                 <p id="timer" x-show="timer" x-text="timer"></p>
             </div>
-            <p>You may scan a card to activate its ability.</p>
+            <p x-text="instruction">You may scan a card to activate its ability.</p>
         </div>
         <div id="scan-area" class="panel clear">
             <span>Place card under here.</span>
@@ -34,7 +34,7 @@
                 <progress id="progress-bar" max="100" value="0"></progress>            
                 <br>
             </div>
-            <button id="end-game" @click="endGame" class="pure-u-1-2 pure-button">
+            <button id="end-game" class="pure-u-1-2 pure-button">
                 <i class="fa-solid fa-skull"></i>                
                 Hold to end game
             </button>            
@@ -46,9 +46,10 @@
                 players: [],
                 timer: 0,
                 remainingTime: 0,
-                totalTime: 16,
+                totalTime: 420,
                 halfwayPoint: false,
                 endPoint: false,
+                instruction: "You may scan a card to activate its ability.",
                 loadPlayersFromLocalStorage() {
                     const storedPlayers = JSON.parse(localStorage.getItem('players'));
                     if (storedPlayers) {
@@ -65,11 +66,11 @@
                 startTimer() {                    
 
                     // If the game has started, check for a timer
-                    if (localStorage.getItem('isGameStarted') === "yes") {                       
+                    if (localStorage.getItem('isGameStarted') === "yes") {
 
                         // Create a timer if it doesn't exist, otherwise get the remaining time
                         if (localStorage.getItem('remainingTime') === null) {                            
-                            remainingTime = this.totalTime;        
+                            remainingTime = this.totalTime;
                         }
                         else {                         
                             remainingTime = localStorage.getItem('remainingTime');
@@ -78,10 +79,9 @@
                     
                     let interval = setInterval(() => {
                         if (remainingTime <= 0) {
-                            clearInterval(interval);
-                            localStorage.removeItem('remainingTime');
+                            clearInterval(interval);                            
                             this.timer = "Time's up! Vote!";
-                            localStorage.removeItem('isSecondHalf');
+                            localStorage.setItem('isGameOver', "yes");
                         } else {
                             if (remainingTime <= this.totalTime / 10) {
                                 this.endPoint = true;
@@ -108,8 +108,13 @@
                     this.loadPlayersFromLocalStorage();
                     this.checkGameStartConditions();
 
-                    // Timer function                    
-                    this.startTimer(); 
+                    // Timer function
+                    if (!localStorage.getItem('isGameOver')) {
+                        this.startTimer(); 
+                    }
+                    else {                        
+                        this.instruction = "Game over. Use the button below to go to the lobby.";
+                    }
                 }                
             }
         }

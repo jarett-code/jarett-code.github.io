@@ -50,7 +50,7 @@
                 addPlayer() 
                 {
                     if (this.playerName) {
-                        this.players.push({ name: this.playerName, role: '' });
+                        this.players.push({ name: this.playerName, role: '', usedAbility: false });
                         this.playerName = '';
                         this.savePlayersToLocalStorage();
                     }

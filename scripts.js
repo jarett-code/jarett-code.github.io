@@ -7,11 +7,15 @@ function endGame() {
         localStorage.setItem('players', JSON.stringify(resetPlayers));        
     }
 
-    // Reset extra roles
+    // Reset extra roles and game state variables
     localStorage.removeItem('extraRoles');
     localStorage.removeItem('isSecondHalf');
+    localStorage.removeItem('firstGossip');
+    localStorage.removeItem('secondGossip');
     localStorage.removeItem('isGameStarted');
-    localStorage.removeItem('isScanStarted');    
+    localStorage.removeItem('remainingTime');
+    localStorage.removeItem('isGameOver');
+    localStorage.removeItem('isScanStarted');
     window.location.href = 'setup.html';
 }
 
