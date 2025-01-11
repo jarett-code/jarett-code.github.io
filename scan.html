@@ -53,9 +53,14 @@
     </div>
 
     <script>
+        function useAorAn(word) {
+            // Depending on the first letter of the word, return 'a' or 'an'
+            return ['a', 'e', 'i', 'o', 'u'].includes(word[0].toLowerCase()) ? 'an' : 'a';
+        }
+
         function setup() {
             return {
-                roles: ["werewolf", "villager", "seer", "tracker", "saint", "gossip", "minion", "astrologer", "drifter"],
+                roles: ["werewolf", "villager", "seer", "tracker", "tanner", "saint", "gossip", "minion", "astrologer", "drifter"],
                 players: [],
                 extraRoles:[],
                 playersToView: [],
@@ -215,6 +220,8 @@
                         this.saintAbility();                    
                     } else if (role === 'astrologer') {
                         this.astrologerAbility();
+                    } else if (role === 'minion') {
+                        this.minionAbility();
                     } else if (role === 'drifter') {
                         this.drifterAbility();
                     } else if (role === 'gossip') {
@@ -231,14 +238,32 @@
                             this.gossipAbility();
                         }                      
                     } else {
-                        abilityMessage.textContent = "You're bluffing, right?";
+                        bluffingMessages = [
+                            "Keep a straight face", 
+                            "How will you get out of this one?",
+                            "You're bluffing, right?",
+                            "In for a penny, in for a pound",
+                            "You're in deep now",
+                            "Do you think they're buying it?",
+                            "Do you sell used cars?",
+                            "The elder gods frown on your deceit",
+                            "Is this your plan?",
+                            "You're not fooling anyone",
+                            "Do you have a poker face?",
+                            "Do you think you're clever?",
+                            "Do you kiss your mother with those lying lips?",
+                            "It's not a lie if you believe it",
+                            "The bigger the lie, the more they'll believe it",
+                        ];
+                        abilityMessage.textContent = bluffingMessages[Math.floor(Math.random() * bluffingMessages.length)];
                     }                    
 
                     // Activate special effects
                     this.specialEffects(role);
                     
-                    // Set a flag to indicate that the player has used their ability, unless they are the gossip
-                    if (role !== 'gossip') {
+                    // Set a flag to indicate that the player has used their ability
+                    // That is, unless they are the gossip, werewolf, or villager
+                    if (role !== 'gossip' && role !== 'werewolf' && role !== 'villager') {
                         currentPlayer.usedAbility = true;
                         this.savePlayersToLocalStorage();
                     }                    
@@ -271,6 +296,21 @@
                     abilityMessage.textContent = `No ${drifterResult.join(' or ')} present`;
                 },
 
+                minionAbility() {
+                    // The minion learns the identity of the werewolves
+                    const werewolfPlayers = this.players.filter(player => player.role === 'werewolf');
+                    const werewolfNames = werewolfPlayers.map(player => player.name).join(' and ');
+
+                    if (werewolfPlayers.length === 0) {
+                        abilityMessage.textContent = 'No werewolves';
+                    } else if (werewolfPlayers.length === 1) {
+                        abilityMessage.textContent = `Your werewolf is ${werewolfNames}`;
+                    }
+                    else {
+                        abilityMessage.textContent = `Your werewolves are ${werewolfNames}`;
+                    }
+                },
+
                 gossipAbility() {
                     // The gossip learns something about 2 random players. One is true, the other is true or false.
 
@@ -283,15 +323,16 @@
                     maybeRole = randomPlayers.pop();
 
                     // Prepare the true gossip by picking out the first random player.
-                    trueGossip = `${trueRole.name} may be a ${trueRole.role}`;
+                    trueGossip = `${trueRole.name} may be ${useAorAn(trueRole.role)} ${trueRole.role}`;
 
                     // Prepare the potentially false gossip -- 50% chance
                     const isTrueGossip = Math.random() < 0.5;
 
                     if (isTrueGossip) {                       
-                        maybeGossip = `${maybeRole.name} may be a ${maybeRole.role}`;
+                        maybeGossip = `${maybeRole.name} may be ${useAorAn(maybeRole.role)} ${maybeRole.role}`;
                     } else {
-                        maybeGossip = `${maybeRole.name} may be a ${randomPlayers.pop().role}`;
+                        const randomRole = randomPlayers.pop().role;
+                        maybeGossip = `${maybeRole.name} may be ${useAorAn(randomRole)} ${randomRole}`;
                     }
 
                     // Now that we have our 2 gossips, choose a random order to display them
@@ -327,10 +368,12 @@
                     const falseRole = allRoles.pop();
 
                     // Shuffle the false role with the player's real role
-                    letRoleClues = [selectedPlayer.role, falseRole].sort(() => 0.5 - Math.random());
+                    const roleClues = [selectedPlayer.role, falseRole].sort(() => 0.5 - Math.random());
 
                     if (selectedPlayer) {
-                        abilityMessage.textContent = `${selectedPlayer.name} is either a ${letRoleClues[0]} or a ${letRoleClues[1]}`;
+                        abilityMessage.textContent = 
+                            `${selectedPlayer.name} is either ${useAorAn(roleClues[0])} ${roleClues[0]} 
+                                or ${useAorAn(roleClues[1])} ${roleClues[1]}`;
                     } else {
                         abilityMessage.textContent = 'Player not found';
                     }
@@ -375,7 +418,7 @@
                         trackedPlayerNamesString = playersToTrack.map(player => player.name).join(', ');
                     }
                     else {
-                        trackedPlayerNamesString = playersToTrack.map(player => player.name).join('and ');
+                        trackedPlayerNamesString = playersToTrack.map(player => player.name).join(' and ');
                     }                    
                     const werewolfWasFound = playersToTrack.find(player => player.role === 'werewolf');
                     abilityMessage.textContent = werewolfWasFound ? `A werewolf hides amongst ${trackedPlayerNamesString}` : `No werewolves amongst ${trackedPlayerNamesString}`;
