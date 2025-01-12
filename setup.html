@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">        
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="scripts.js" defer></script>
 </head>
 <body>
     <div x-data="setup()" class="pure-g">
@@ -26,9 +27,10 @@
                 <template x-for="(player, index) in players" :key="index">
                     <li>
                         <span x-text="player.name"></span>
+                        <span x-show="showPlayerRoles">(was <span x-text="player.role"></span>)</span>
                         <button @click="removePlayer(index)">
                             <i class="fa-solid fa-circle-xmark"></i>
-                        </button>
+                        </button>                        
                     </li>
                 </template>
             </ol>
@@ -46,7 +48,8 @@
         function setup() {
             return {
                 playerName: '',
-                players: [],                
+                players: [],
+                showPlayerRoles: false,
                 addPlayer() 
                 {
                     if (this.playerName) {
@@ -54,7 +57,7 @@
                         this.playerName = '';
                         this.savePlayersToLocalStorage();
                     }
-                },
+                },                
                 removePlayer(index) {
                     this.players.splice(index, 1);
                     this.savePlayersToLocalStorage();
@@ -70,10 +73,20 @@
                 },
                 startScan() {                
                     localStorage.setItem('isScanStarted', "yes");
+                    localStorage.removeItem('showPlayerRoles');
+
+                    const storedPlayers = JSON.parse(localStorage.getItem('players'));
+                    // Reset all players to their initial state
+                    if (storedPlayers) {
+                        // Reset all players to their initial state
+                        const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false }));
+                        localStorage.setItem('players', JSON.stringify(resetPlayers));        
+                    }
                 },
                 init() {
                     console.log('Setup initialized.');
                     this.loadPlayersFromLocalStorage();
+                    this.showPlayerRoles = localStorage.getItem('showPlayerRoles') === "yes";
                 }
             }
         }

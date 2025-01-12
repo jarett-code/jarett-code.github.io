@@ -53,11 +53,6 @@
     </div>
 
     <script>
-        function useAorAn(word) {
-            // Depending on the first letter of the word, return 'a' or 'an'
-            return ['a', 'e', 'i', 'o', 'u'].includes(word[0].toLowerCase()) ? 'an' : 'a';
-        }
-
         function setup() {
             return {
                 roles: ["werewolf", "villager", "seer", "tracker", "tanner", "saint", "gossip", "minion", "astrologer", "drifter"],
@@ -254,6 +249,9 @@
                             "Do you kiss your mother with those lying lips?",
                             "It's not a lie if you believe it",
                             "The bigger the lie, the more they'll believe it",
+                            "You're a regular Pinocchio",
+                            "You...may be a werewolf",
+                            "All is fair in love and werewolves",
                         ];
                         abilityMessage.textContent = bluffingMessages[Math.floor(Math.random() * bluffingMessages.length)];
                     }                    
