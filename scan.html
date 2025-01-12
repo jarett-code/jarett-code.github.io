@@ -15,7 +15,18 @@
         <p id="gameInfo">Scan the player cards to assign roles.</p>
     </div>
 
-    <div id="specialAbility" class="special-ability" x-show="specialAbilityVisible">        
+    <div id="specialAbility" class="special-ability" x-show="specialAbilityVisible">
+        <!-- Role help -->
+        <div id="role-help">            
+            <button class="pure-button button-secondary" @click="showRoleHelp = !showRoleHelp">
+                <i class="fa-solid fa-question"></i>
+                Role help
+            </button>
+            <div x-show="showRoleHelp">
+                <p x-text="roleHelp[role]"></p>
+            </div>
+        </div>
+
         <p id="abilityMessage" x-text="abilityMessage"></p>
         <!-- Gossip messages -->
         <p id="gossip1" x-text="gossip1" x-show="gossip1"></p>
@@ -49,13 +60,25 @@
         <button id="cancel-ability" onclick="window.location.href='gameplay.html'" class="pure-button button-primary">
             <i class="fa-solid fa-arrow-left"></i>
             Go back
-        </button>
+        </button>        
     </div>
 
     <script>
         function setup() {
             return {
                 roles: ["werewolf", "villager", "seer", "tracker", "tanner", "saint", "gossip", "minion", "astrologer", "drifter"],
+                roleHelp: {
+                    "werewolf": "You are a werewolf. Your goal is to eliminate a townsfolk. If all werewolves vote to kill the saint, you win.",
+                    "villager": "You are a villager. Your goal is to eliminate a werewolf. You have no special abilities nor reason to lie.",
+                    "seer": "You are the seer. You can view another player and get a clue about their role.",
+                    "tracker": "You are the tracker. You choose which half of the players at the table to track; this determines if a wolf is among them.",
+                    "tanner": "You are the tanner. You hate your life. Your only goal is to convince the town to kill you.",
+                    "saint": "You the the saint. Don't let the werewolves discover your role. Help the townsfolk cast the right vote.",
+                    "gossip": "You are the gossip. You get two clues, the second available halfway through the game. One clue may be false.",
+                    "minion": "You are the minion. You serve the werewolves and must help them win -- even if you must die.",
+                    "astrologer": "You are the astrologer. You can determine one role that is in play.",
+                    "drifter": "You are the drifter. You determine two roles not in play. In other words, you identify two of the non-player cards from the centre.",
+                },
                 players: [],
                 extraRoles:[],
                 playersToView: [],
@@ -67,6 +90,7 @@
                 showMainAbilityButton: true,
                 showSeerControls: false,
                 showTrackerButtons: false,
+                showRoleHelp: false,
                 audio: new Audio('sounds/power_activated.mp3'),
                 role: null,
                 selectedPlayer: null,                

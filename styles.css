@@ -58,6 +58,17 @@ i {
     z-index: 1000;
 }
 
+#role-help {
+    position: absolute;
+    top: 10px;    
+}
+ #role-help p {
+    /* Readable font */
+    padding: 20px;
+    font: 14pt sans-serif;
+ }
+
+
 #ability-effect {
     height:400px;
     width: 400px;
@@ -270,6 +281,20 @@ i {
 
 .button-primary i {
     color:#1C4D9C;
+}
+
+.button-secondary {
+    background-color: #333;
+    color: #aaa;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+}
+
+.button-secondary i {
+    color: #aaa;
 }
 
 .button-small {
