@@ -1,11 +1,5 @@
-// End the game. Keeps the players, but wipes their roles and abilities.
 function endGame() {
-    // const storedPlayers = JSON.parse(localStorage.getItem('players'));
-    // if (storedPlayers) {
-    //     // Reset all players to their initial state
-    //     const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false }));
-    //     localStorage.setItem('players', JSON.stringify(resetPlayers));        
-    // }
+    // End the game. Wipes game data, except for the players.
 
     // If the game was started, set a games state for the lobby to show all players' roles
     if (localStorage.getItem('isGameStarted')) {

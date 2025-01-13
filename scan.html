@@ -37,6 +37,16 @@
             <i class="fa-solid fa-hands-holding-circle"></i>
             <!-- <i class="fa-solid fa-eye"></i> -->
         </button>
+        <!-- Villager controls -->
+        <div id="villagerControls" x-show="showVillagerControls" x-transition.opacity.0.duration.1500ms>
+            <select class="playerSelect" x-model="selectedPlayer" @change="villagerAbility()">
+                <option value="">Select a player</option>
+                <template x-for="player in playersToVote" :key="player.name">
+                    <option x-text="player.name" :value="player.id"></option>
+                </template>
+            </select>
+            <br>
+        </div>
         <!-- Tracker controls -->
         <button id="trackLeftButton" x-show="showTrackerButtons" class="trackerButton pure-button button-primary" @click="trackerAbility(trackDirection='left')">
             <i class="fa-solid fa-arrow-left"></i>
@@ -48,7 +58,7 @@
         </button>
         <!-- Seer controls -->
         <div id="seerControls" x-show="showSeerControls" x-transition.opacity.0.duration.1500ms>
-            <select id="playerSelect" x-model="selectedPlayer" @change="seerAbility()">
+            <select class="playerSelect" x-model="selectedPlayer" @change="seerAbility()">
                 <option value="">Select a player</option>
                 <template x-for="player in playersToView" :key="player.name">
                     <option x-text="player.name" :value="player.name"></option>
@@ -69,7 +79,7 @@
                 roles: ["werewolf", "villager", "seer", "tracker", "tanner", "saint", "gossip", "minion", "astrologer", "drifter"],
                 roleHelp: {
                     "werewolf": "You are a werewolf. Your goal is to eliminate a townsfolk. If all werewolves vote to kill the saint, you win.",
-                    "villager": "You are a villager. Your goal is to eliminate a werewolf. You have no special abilities nor reason to lie.",
+                    "villager": "You are a villager. Your goal is to eliminate a werewolf. Villagers may appoint a player as mayor, giving them an extra vote at the end.",
                     "seer": "You are the seer. You can view another player and get a clue about their role.",
                     "tracker": "You are the tracker. You choose which half of the players at the table to track; this determines if a wolf is among them.",
                     "tanner": "You are the tanner. You hate your life. Your only goal is to convince the town to kill you.",
@@ -82,6 +92,7 @@
                 players: [],
                 extraRoles:[],
                 playersToView: [],
+                playersToVote: [],
                 abilityMessage: '',
                 gossip1: null,
                 gossip2: null,
@@ -89,10 +100,12 @@
                 specialAbilityVisible: false,
                 showMainAbilityButton: true,
                 showSeerControls: false,
+                showVillagerControls: false,
                 showTrackerButtons: false,
                 showRoleHelp: false,
                 audio: new Audio('sounds/power_activated.mp3'),
                 role: null,
+                id: null,
                 selectedPlayer: null,                
 
                 getRole() {
@@ -103,12 +116,17 @@
                     }
                     else {
                         this.role = params.get('role');
+                        this.id = params.get('id');
                     }
                     return this.role;
                 },
 
-                getCurrentPlayer() {                    
-                    return this.players.find(player => player.role === this.getRole()); // TODO might break with roles assigned to 2 or more players
+                getCurrentPlayer() {
+                    // Using the id parameter, get the current player  
+                    const params = new URLSearchParams(window.location.search);
+                    const id = params.get('id');
+
+                    return this.players.find(player => player.id === id);
                 },
 
                 loadPlayersFromLocalStorage() {
@@ -130,6 +148,7 @@
                     for (let player of this.players) {
                         if (!player.role) {
                             player.role = role;
+                            player.id = this.id;
                             break;
                         }
                     }
@@ -225,18 +244,21 @@
                     // If the role is tracker, display the tracking buttons and hide the main special ability button
                     if (role === 'tracker') {                                                
                         this.showTrackerButtons = true;
-                        return;
                     }
                     // If the role is seer, display the seer controls
                     if (role === 'seer') {
                         this.showSeerControls = true;
                         this.playersToView = this.players.filter(player => player.role && player.role !== 'seer');
-                        return;
+                    }
+                    // If the role is villager, display the villager controls for voting
+                    if (role === 'villager') {
+                        this.showVillagerControls = true;
+                        this.playersToVote = this.players.filter(player => player.role && player.id !== currentPlayer.id);
                     }
 
                     // 2. Basic roles: no additional controls are required, just perform the ability immediately
                     if (role === 'saint') {
-                        this.saintAbility();                    
+                        this.saintAbility();                 
                     } else if (role === 'astrologer') {
                         this.astrologerAbility();
                     } else if (role === 'minion') {
@@ -278,24 +300,39 @@
                             "All is fair in love and werewolves",
                         ];
                         abilityMessage.textContent = bluffingMessages[Math.floor(Math.random() * bluffingMessages.length)];
-                    }                    
+                    }               
+                },
+                villagerAbility() {
+                    // Villagers can appoint a mayor, who casts two votes
+
+                    // Add a vote to the tally of whoever the player chose
+                    const selectedPlayer = this.players.find(player => player.id === this.selectedPlayer);
+                    selectedPlayer.mayorVotes++;
+
+                    // Remove the dropdown after the ability is used
+                    this.showVillagerControls = false;
+
+                    abilityMessage.textContent = `You have voted ${selectedPlayer.name} for mayor`;
 
                     // Activate special effects
-                    this.specialEffects(role);
-                    
-                    // Set a flag to indicate that the player has used their ability
-                    // That is, unless they are the gossip, werewolf, or villager
-                    if (role !== 'gossip' && role !== 'werewolf' && role !== 'villager') {
-                        currentPlayer.usedAbility = true;
-                        this.savePlayersToLocalStorage();
-                    }                    
-                },
+                    this.specialEffects();
 
+                    // Mark the player as having used their ability
+                    this.getCurrentPlayer().usedAbility = true;
+                    this.savePlayersToLocalStorage();
+
+               },
                 saintAbility() {
                     // The saint learns the identity of a werewolf
                     const werewolfPlayers = this.players.filter(player => player.role === 'werewolf');
                     const randomWerewolf = werewolfPlayers[Math.floor(Math.random() * werewolfPlayers.length)];
                     abilityMessage.textContent = randomWerewolf ? `${randomWerewolf.name} is a werewolf` : 'No werewolf found';
+
+                    this.specialEffects();  
+                    
+                    // Mark the player as having used their ability
+                    this.getCurrentPlayer().usedAbility = true;
+                    this.savePlayersToLocalStorage();
                 },
 
                 astrologerAbility() {
@@ -308,6 +345,12 @@
                     // Now, pick a random role from the possible roles
                     const randomRole = possibleRoles[Math.floor(Math.random() * possibleRoles.length)];
                     abilityMessage.textContent = randomRole ? `The ${randomRole} is present` : 'No special roles found';
+
+                    this.specialEffects();
+
+                    // Mark the player as having used their ability
+                    this.getCurrentPlayer().usedAbility = true;
+                    this.savePlayersToLocalStorage();
                 },
 
                 drifterAbility() {
@@ -316,6 +359,12 @@
                     // Pick two random roles from the 3 extras
                     const drifterResult = this.extraRoles.sort(() => 0.5 - Math.random()).slice(0, 2);
                     abilityMessage.textContent = `No ${drifterResult.join(' or ')} present`;
+
+                    this.specialEffects();
+
+                    // Mark the player as having used their ability
+                    this.getCurrentPlayer().usedAbility = true;
+                    this.savePlayersToLocalStorage();
                 },
 
                 minionAbility() {
@@ -331,6 +380,8 @@
                     else {
                         abilityMessage.textContent = `Your werewolves are ${werewolfNames}`;
                     }
+
+                    this.specialEffects();
                 },
 
                 gossipAbility() {
@@ -372,6 +423,7 @@
                     localStorage.setItem('firstGossip', randomGossipOrder[0]);
                     localStorage.setItem('secondGossip', randomGossipOrder[1]);
                     
+                    this.specialEffects();
                 },
 
                 seerAbility() {
@@ -404,6 +456,10 @@
 
                     // Activate special effects
                     this.specialEffects();
+
+                    // Mark the player as having used their ability
+                    this.getCurrentPlayer().usedAbility = true;
+                    this.savePlayersToLocalStorage();
                 },
 
                 trackerAbility(trackDirection) {
@@ -447,6 +503,10 @@
 
                     // Activate special effects
                     this.specialEffects();
+
+                    // Mark the player as having used their ability
+                    this.getCurrentPlayer().usedAbility = true;
+                    this.savePlayersToLocalStorage();
                 },
 
                 specialEffects() {

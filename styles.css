@@ -171,6 +171,10 @@ i {
     text-shadow: 0 0 6px #000;
 }
 
+#mayor {
+    padding: 80px 10px;
+}
+
 #start-game, #end-game {
     padding: 20px 0;
     font-weight: 600;
@@ -206,7 +210,7 @@ i {
     margin: 0 50px;
 }
 
-#seerControls #playerSelect {
+.playerSelect {
     margin-top: 260px;    
 
 }

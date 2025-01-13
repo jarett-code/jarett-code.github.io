@@ -23,8 +23,12 @@
             </div>
             <p x-text="instruction">You may scan a card to activate its ability.</p>
         </div>
-        <div id="scan-area" class="panel clear">
+        <div id="scan-area" class="panel clear" x-show="!endPoint">
             <span>Place card under here.</span>
+        </div>
+        <div id="mayor" class="panel" x-show="endPoint && mayor">
+            <h1><strong><span x-text="mayor"></span></strong> was appointed mayor!</h1>
+            <p x-show="mayor != 'No one'">They will cast 2 votes.</p>
         </div>
         
         <div class="panel clear">
@@ -47,6 +51,7 @@
                 timer: 0,
                 remainingTime: 0,
                 totalTime: 420,
+                mayor: "",
                 halfwayPoint: false,
                 endPoint: false,
                 instruction: "You may scan a card to activate its ability.",
@@ -61,6 +66,26 @@
                         localStorage.setItem('isGameStarted', 'yes');
                     } else {
                         window.location.href = 'setup.html';
+                    }
+                },
+                getMayor() {
+                    // Return the player with the most votes for mayor, ties mean no mayor
+
+                    // Find the players with mayor votes
+                    let candidates = this.players.filter(player => player.mayorVotes > 0);
+
+                    // Find the highest number of votes
+                    const maxVotes = Math.max(...candidates.map(player => player.mayorVotes));
+
+                    // Filter the candidates to only those with the most votes
+                    candidates = candidates.filter(player => player.mayorVotes === maxVotes);
+
+                    // If there was one person with the most votes, they're the mayor
+                    if (candidates.length === 1) {
+                        return candidates[0].name;
+                    }
+                    else {
+                        return 'No one';
                     }
                 },
                 startTimer() {                    
@@ -79,11 +104,13 @@
                     
                     let interval = setInterval(() => {
                         if (remainingTime <= 0) {
-                            clearInterval(interval);                            
-                            this.timer = "Time's up! Vote!";
+                            clearInterval(interval);
+                            this.mayor = this.getMayor();
+                            this.instruction = "Time's up. Vote!";
+                            // this.timer = "Time's up. Vote!";
                             localStorage.setItem('isGameOver', "yes");
                         } else {
-                            if (remainingTime <= this.totalTime / 10) {
+                            if (remainingTime <= this.totalTime / 10) {                                
                                 this.endPoint = true;
                             }
                             else if (remainingTime <= this.totalTime / 2) {

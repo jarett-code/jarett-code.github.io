@@ -27,7 +27,7 @@
                 <template x-for="(player, index) in players" :key="index">
                     <li>
                         <span x-text="player.name"></span>
-                        <span x-show="showPlayerRoles">(was <span x-text="player.role"></span>)</span>
+                        <span x-show="showPlayerRoles && player.role">(was <span x-text="player.role"></span>)</span>
                         <button @click="removePlayer(index)">
                             <i class="fa-solid fa-circle-xmark"></i>
                         </button>                        
@@ -79,7 +79,7 @@
                     // Reset all players to their initial state
                     if (storedPlayers) {
                         // Reset all players to their initial state
-                        const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false }));
+                        const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false, mayorVotes: 0 }));
                         localStorage.setItem('players', JSON.stringify(resetPlayers));        
                     }
                 },
