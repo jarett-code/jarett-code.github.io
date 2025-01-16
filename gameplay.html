@@ -27,21 +27,36 @@
             <span>Place card under here.</span>
         </div>
         <div id="mayor" class="panel" x-show="endPoint && mayor">
-            <h1><strong><span x-text="mayor"></span></strong> was appointed mayor!</h1>
+            <h1><strong><span class="ringleader" x-text="mayor"></span></strong> was appointed ringleader!</h1>
             <p x-show="mayor != 'No one'">They will cast 2 votes.</p>
         </div>
         
         <div class="panel clear">
-            <div class="progress-display">
-                <span id="progress-percent">0%</span>
-                <br>
-                <progress id="progress-bar" max="100" value="0"></progress>            
-                <br>
+            <div id="end-game-control" x-show="endPoint">
+                <div class="progress-display">
+                    <span class="progress-percent">0%</span>
+                    <br>
+                    <progress class="progress-bar" max="100" value="0"></progress>            
+                    <br>
+                </div>
+                <button class="pure-u-1-2 pure-button">
+                    <!-- <i class="fa-solid fa-skull"></i>                 -->
+                    <i class="fa-solid fa-power-off"></i>
+                    Back to lobby <small>(hold)</small>
+                </button>
             </div>
-            <button id="end-game" class="pure-u-1-2 pure-button">
-                <i class="fa-solid fa-skull"></i>                
-                Hold to end game
-            </button>            
+            <div id="skip-game-control" x-show="!endPoint">
+                <div class="progress-display">
+                    <span class="progress-percent">0%</span>
+                    <br>
+                    <progress class="progress-bar" max="100" value="0"></progress>            
+                    <br>
+                </div>
+                <button class="pure-u-1-2 pure-button">
+                    <i class="fa-solid fa-forward"></i>
+                    Skip to vote <small>(hold)</small>
+                </button>
+            </div>
         </div>        
     </div>
     <script>
@@ -50,7 +65,7 @@
                 players: [],
                 timer: 0,
                 remainingTime: 0,
-                totalTime: 420,
+                totalTime: 420,                
                 mayor: "",
                 halfwayPoint: false,
                 endPoint: false,
@@ -100,20 +115,22 @@
                         else {                         
                             remainingTime = localStorage.getItem('remainingTime');
                         }
-                    } 
+                    }
                     
                     let interval = setInterval(() => {
+                        if (Alpine.store("gameState").isGameSkipped) {
+                            clearInterval(interval);
+                            remainingTime = 0;
+                            this.endPoint = true;
+                        }
                         if (remainingTime <= 0) {
                             clearInterval(interval);
+                            this.endPoint = true;
                             this.mayor = this.getMayor();
                             this.instruction = "Time's up. Vote!";
-                            // this.timer = "Time's up. Vote!";
                             localStorage.setItem('isGameOver', "yes");
                         } else {
-                            if (remainingTime <= this.totalTime / 10) {                                
-                                this.endPoint = true;
-                            }
-                            else if (remainingTime <= this.totalTime / 2) {
+                            if (remainingTime <= this.totalTime / 2) {
                                 localStorage.setItem('isSecondHalf', "yes");    
                                 this.halfwayPoint = true;            
                             }
@@ -132,6 +149,11 @@
                     this.timer = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
                 },
                 init() {
+                    // Set up data store for skipped game variable. Alpine.store is used because this variable is updated in a plain js function.
+                    Alpine.store("gameState", {
+                       isGameSkipped: false,
+                    });
+
                     this.loadPlayersFromLocalStorage();
                     this.checkGameStartConditions();
 

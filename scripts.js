@@ -18,28 +18,40 @@ function endGame() {
     window.location.href = 'setup.html';
 }
 
-let resetButton = document.getElementById("end-game"),
-    progress = document.getElementById("progress-bar"),    
-    progressPercent = document.getElementById("progress-percent"),
-    progressDisplay = document.getElementsByClassName("progress-display")[0],
-    loadVal = 0,
-    loadingInterval;
+function skipToVote() {
+    // Skip to the end of the current game and go to the final vote
 
-function load() {
-    progress.setAttribute("value", loadVal);
-    loadVal += 1;
-    if (loadVal >= 100) {
-        loadVal = 100;
-        resetButton.style.display = "none";
-        endGame();
-    }
-    progressPercent.innerHTML = loadVal + "%";
+    // Set the gameSkipped variable to true in the Alpine data store
+    Alpine.store("gameState").isGameSkipped = true;
 }
 
-// Add listeners for touch events and the buttons exist
+function createProgressControl(controlContainerElement, methodToCall) {
+    // Takes a container element for a progress button control and adds the hold/percentage effect to it.
+    // Also, calls the given methodToCall when the button is held to 100%.
 
-if (resetButton) {
-    resetButton.addEventListener("touchstart", function () {
+    const progress = controlContainerElement.querySelector("progress");
+    const progressPercent = controlContainerElement.querySelector(".progress-percent");
+    const progressDisplay = controlContainerElement.querySelector(".progress-display");
+    const button = controlContainerElement.querySelector("button");
+    let loadVal = 0;
+    let loadingInterval;
+
+    function load() {
+        progress.setAttribute("value", loadVal);
+        loadVal += 1;
+        if (loadVal >= 100) {
+            loadVal = 100;
+            controlContainerElement.style.display = "none";
+            // Ensure the method is called only once
+            if (methodToCall) {
+                methodToCall();
+                methodToCall = null;
+            }
+        }
+        progressPercent.innerHTML = loadVal + "%";
+    }
+
+    button.addEventListener("touchstart", function () {
         // Show the progress display
         progressDisplay.style.visibility = "visible";
 
@@ -48,7 +60,7 @@ if (resetButton) {
         }
     });
 
-    resetButton.addEventListener("touchend", function () {
+    button.addEventListener("touchend", function () {
         // Hide the progress display
         progressDisplay.style.visibility = "hidden";
 
@@ -59,9 +71,25 @@ if (resetButton) {
             progressPercent.innerHTML = 0 + "%";
         }
     });
+   
 }
 
 function useAorAn(word) {
     // Depending on the first letter of the word, return 'a' or 'an'
     return ['a', 'e', 'i', 'o', 'u'].includes(word[0].toLowerCase()) ? 'an' : 'a';
 }
+
+// Add a listener for page load
+document.addEventListener("DOMContentLoaded", function () {
+    const endGameControl = document.getElementById("end-game-control");
+    const skipGameControl = document.getElementById("skip-game-control");
+
+    // Add listeners for touch events if the buttons exist
+    if (endGameControl) {
+        createProgressControl(endGameControl, endGame);
+    }
+
+    if (skipGameControl) {
+        createProgressControl(skipGameControl, skipToVote);
+    }
+});

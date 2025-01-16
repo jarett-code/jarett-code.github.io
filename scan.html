@@ -78,16 +78,16 @@
             return {
                 roles: ["werewolf", "villager", "seer", "tracker", "tanner", "saint", "gossip", "minion", "astrologer", "drifter"],
                 roleHelp: {
-                    "werewolf": "You are a werewolf. Your goal is to eliminate a townsfolk. If all werewolves vote to kill the saint, you win.",
-                    "villager": "You are a villager. Your goal is to eliminate a werewolf. Villagers may appoint a player as mayor, giving them an extra vote at the end.",
-                    "seer": "You are the seer. You can view another player and get a clue about their role.",
-                    "tracker": "You are the tracker. You choose which half of the players at the table to track; this determines if a wolf is among them.",
-                    "tanner": "You are the tanner. You hate your life. Your only goal is to convince the town to kill you.",
-                    "saint": "You the the saint. Don't let the werewolves discover your role. Help the townsfolk cast the right vote.",
-                    "gossip": "You are the gossip. You get two clues, the second available halfway through the game. One clue may be false.",
-                    "minion": "You are the minion. You serve the werewolves and must help them win -- even if you must die.",
-                    "astrologer": "You are the astrologer. You can determine one role that is in play.",
-                    "drifter": "You are the drifter. You determine two roles not in play. In other words, you identify two of the non-player cards from the centre.",
+                    "werewolf": "You are a Werewolf. Your goal is to eliminate a townsfolk. Werewolves also win if all of them vote to kill the Saint.",
+                    "villager": "You are a Villager. Your goal is to eliminate a Werewolf. Villagers may appoint a player as the ringleader, giving them an extra vote at the end.",
+                    "seer": "You are the Watcher. You can view another player and get a clue about their role.",
+                    "tracker": "You are the Tracker. You choose which half of the players at the table to track; this determines if a Werewolf is among them.",
+                    "tanner": "You are the Deviant. Your only goal is to convince the town to kill you.",
+                    "saint": "You the the Saint. Don't let the Werewolves discover your role. Discreetly guide the townsfolk cast the right vote.",
+                    "gossip": "You are the Gossip. You get 2 clues, the 2nd is available halfway through the game. One clue may be false.",
+                    "minion": "You are the Turncloak. You serve the Werewolves and must help them win — even if you must die.",
+                    "astrologer": "You are the Astrologer. You can determine one role that is definitely in play.",
+                    "drifter": "You are the Drifter. You determine 2 roles not in play. In other words, you identify 2 of the non-player cards from the centre.",
                 },
                 players: [],
                 extraRoles:[],
@@ -303,7 +303,7 @@
                     }               
                 },
                 villagerAbility() {
-                    // Villagers can appoint a mayor, who casts two votes
+                    // Villagers can appoint a mayor (ringleader), who casts two votes
 
                     // Add a vote to the tally of whoever the player chose
                     const selectedPlayer = this.players.find(player => player.id === this.selectedPlayer);
