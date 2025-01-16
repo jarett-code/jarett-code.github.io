@@ -58,7 +58,7 @@ i {
     z-index: 1000;
 }
 
-#role-help {
+#role-secondary-controls {
     position: absolute;
     top: 10px;    
 }
@@ -66,6 +66,30 @@ i {
     /* Readable font */
     padding: 20px;
     font: 14pt sans-serif;
+ }
+
+ #role-secondary-controls button {
+    margin: 4px;
+    padding: 10px 10px;
+ }
+
+ #role-secondary-controls button.active {
+    background-color: dodgerblue;
+    color: white;
+    box-shadow: skyblue 0 0 6px 2px;
+ }
+
+ #role-secondary-controls button.active i {    
+    color: white;    
+ }
+
+ #role-help p.houndsman-help {
+    padding: 4px 20px;
+    font-size: small;
+ }
+
+ .houndsman-help i {
+    color: white;
  }
 
 

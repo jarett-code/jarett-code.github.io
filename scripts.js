@@ -12,7 +12,7 @@ function endGame() {
     localStorage.removeItem('firstGossip');
     localStorage.removeItem('secondGossip');
     localStorage.removeItem('isGameStarted');
-    localStorage.removeItem('remainingTime');
+    localStorage.removeItem('remainingTime');    
     localStorage.removeItem('isGameOver');
     localStorage.removeItem('isScanStarted');
     window.location.href = 'setup.html';

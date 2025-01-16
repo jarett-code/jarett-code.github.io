@@ -16,16 +16,32 @@
     </div>
 
     <div id="specialAbility" class="special-ability" x-show="specialAbilityVisible">
-        <!-- Role help -->
-        <div id="role-help">            
-            <button class="pure-button button-secondary" @click="showRoleHelp = !showRoleHelp">
-                <i class="fa-solid fa-question"></i>
-                Role help
+        <!-- Secondary controls -->
+        <div id="role-secondary-controls">
+            <!-- Allow sniff left control -->
+            <button class="pure-button button-secondary sniff" @click="allowSniff(direction='left')" :class="{ 'active': isSniffLeftAllowed }" x-show="showSniffButtons" x-transition.opacity.100.duration.2000ms>
+                <i class="fa-solid fa-arrow-left"></i>
+                Allow sniff
             </button>
-            <div x-show="showRoleHelp">
+            <!-- Role help control -->
+            <button class="pure-button button-secondary" @click="showRoleHelp = !showRoleHelp" :class="{ 'active': showRoleHelp }">
+                <i class="fa-solid fa-question"></i>
+                Help
+            </button>
+            <!-- Allow sniff right control -->
+            <button class="pure-button button-secondary sniff" @click="allowSniff(direction='right')" :class="{ 'active': isSniffRightAllowed }" x-show="showSniffButtons" x-transition.opacity.100.duration.2000ms>
+                Allow sniff
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <!-- Role help description -->
+            <div id="role-help" x-show="showRoleHelp">
                 <p x-text="roleHelp[role]"></p>
+                <p x-show="isHoundsmanInGame" class="houndsman-help">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Werewolf and Houndsman players may sniff out the role of the players beside them. However, players must allow it by using the controls above.
+                </p>
             </div>
-        </div>
+        </div>        
 
         <p id="abilityMessage" x-text="abilityMessage"></p>
         <!-- Gossip messages -->
@@ -55,7 +71,7 @@
         <button id="trackRightButton" x-show="showTrackerButtons" class="trackerButton pure-button button-primary" @click="trackerAbility(trackDirection='right')">
             Track right
             <i class="fa-solid fa-arrow-right"></i>
-        </button>
+        </button>      
         <!-- Seer controls -->
         <div id="seerControls" x-show="showSeerControls" x-transition.opacity.0.duration.1500ms>
             <select class="playerSelect" x-model="selectedPlayer" @change="seerAbility()">
@@ -76,9 +92,9 @@
     <script>
         function setup() {
             return {
-                roles: ["werewolf", "villager", "seer", "tracker", "tanner", "saint", "gossip", "minion", "astrologer", "drifter"],
+                roles: ["werewolf", "villager", "seer", "tracker", "tanner", "saint", "gossip", "minion", "astrologer", "drifter", "houndsman"],
                 roleHelp: {
-                    "werewolf": "You are a Werewolf. Your goal is to eliminate a townsfolk. Werewolves also win if all of them vote to kill the Saint.",
+                    "werewolf": "You are a Werewolf. Your goal is to survive. You also win if all Werewolves vote to kill the Saint.",
                     "villager": "You are a Villager. Your goal is to eliminate a Werewolf. Villagers may appoint a player as the ringleader, giving them an extra vote at the end.",
                     "seer": "You are the Watcher. You can view another player and get a clue about their role.",
                     "tracker": "You are the Tracker. You choose which half of the players at the table to track; this determines if a Werewolf is among them.",
@@ -88,6 +104,7 @@
                     "minion": "You are the Turncloak. You serve the Werewolves and must help them win — even if you must die.",
                     "astrologer": "You are the Astrologer. You can determine one role that is definitely in play.",
                     "drifter": "You are the Drifter. You determine 2 roles not in play. In other words, you identify 2 of the non-player cards from the centre.",
+                    "houndsman": "You are the Houndsman. You may sniff out the role of either player next to you...if they consent."
                 },
                 players: [],
                 extraRoles:[],
@@ -103,6 +120,9 @@
                 showVillagerControls: false,
                 showTrackerButtons: false,
                 showRoleHelp: false,
+                showSniffButtons: false,
+                isSniffLeftAllowed: false,
+                isSniffRightAllowed: false,
                 audio: new Audio('sounds/power_activated.mp3'),
                 role: null,
                 id: null,
@@ -141,6 +161,35 @@
                     if (storedExtraRoles) {
                         this.extraRoles = storedExtraRoles;
                     }
+                },
+
+                allowSniff(direction) {
+                    // Allow the werewolf or houndsman from the selected direction to sniff the role of the current player
+
+                    if (direction === 'left') {
+                        // Toggle the sniff attribute
+                        if (this.getCurrentPlayer().allowSniffLeft !== "yes") {
+                            console.log("fire");
+                            this.getCurrentPlayer().allowSniffLeft = "yes";
+                            this.isSniffLeftAllowed = true;
+                        }
+                        else {
+                            this.getCurrentPlayer().allowSniffLeft = "no";
+                            this.isSniffLeftAllowed = false;
+                        }                       
+                    }
+                    else if (direction === 'right') {
+                        // Toggle the sniff attribute
+                        if (this.getCurrentPlayer().allowSniffRight !== "yes") {
+                            this.getCurrentPlayer().allowSniffRight = "yes";
+                            this.isSniffRightAllowed = true;
+                        }
+                        else {
+                            this.getCurrentPlayer().allowSniffRight = "no";
+                            this.isSniffRightAllowed = false;
+                        }
+                    }                    
+                    this.savePlayersToLocalStorage();
                 },
 
                 assignRole(role) {
@@ -187,12 +236,30 @@
                         }
                     }, 1000);
                   
-                },             
+                },
+
+                isHoundsmanInGame() {
+                    // Return whether the Houndsman is in the game
+                    
+                     // Get all the players, plus extra roles
+                    const allRoles = this.players.map(player => player.role).concat(this.extraRoles);
+                        
+                    if (allRoles.includes('houndsman')) {
+                        console.log('Houndsman in game');
+                        return true;
+                    }
+                    else {
+                        console.log('Houndsman not in game');
+                        return false;                        
+                    }
+                },
 
                 init() {
                     this.loadPlayersFromLocalStorage();
                     this.loadExtraRolesFromLocalStorage();
                     this.getRole();
+                    this.isHoundsmanInGame = this.isHoundsmanInGame();
+                    this.initializeSniffButtons();
 
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
                     // this.players = this.players.map(player => ({ ...player, usedAbility: false }));
@@ -224,6 +291,20 @@
                     }
                 },
 
+                initializeSniffButtons() {
+                        // Only display these controls if the houndsman is in the game.
+                        // Displays buttons in style according to saved state. Adds a delay to protect the player's privacy.                       
+                        
+                        if (this.isHoundsmanInGame) {
+                            // Add a 2 second delay before the sniff button statuses are displayed
+                            this.holdTimeout = setTimeout(() => {
+                                this.isSniffLeftAllowed = this.getCurrentPlayer().allowSniffLeft === "yes";
+                                this.isSniffRightAllowed = this.getCurrentPlayer().allowSniffRight === "yes";
+                                this.showSniffButtons = true;
+                            }, 2000);
+                        }                       
+                },
+
                 activateRole() {
                     // Depending on the role, the player can activate a special ability.
                     // Some roles require additional controls to perform their ability.
@@ -244,7 +325,7 @@
                     // If the role is tracker, display the tracking buttons and hide the main special ability button
                     if (role === 'tracker') {                                                
                         this.showTrackerButtons = true;
-                    }
+                    }                    
                     // If the role is seer, display the seer controls
                     if (role === 'seer') {
                         this.showSeerControls = true;
@@ -257,7 +338,12 @@
                     }
 
                     // 2. Basic roles: no additional controls are required, just perform the ability immediately
-                    if (role === 'saint') {
+                    // If the role is werewolf or houndsman, activate the sniff ability
+                    if (role === 'werewolf' && this.isHoundsmanInGame) {                       
+                        this.sniffAbility();
+                    } else if (role === 'houndsman') {
+                        this.sniffAbility();
+                    } else if (role === 'saint') {
                         this.saintAbility();                 
                     } else if (role === 'astrologer') {
                         this.astrologerAbility();
@@ -278,7 +364,7 @@
                         } else {
                             this.gossipAbility();
                         }                      
-                    } else {
+                    } else {                       
                         bluffingMessages = [
                             "Keep a straight face", 
                             "How will you get out of this one?",
@@ -300,6 +386,9 @@
                             "All is fair in love and werewolves",
                         ];
                         abilityMessage.textContent = bluffingMessages[Math.floor(Math.random() * bluffingMessages.length)];
+
+                        // Activate special effects
+                        this.specialEffects();
                     }               
                 },
                 villagerAbility() {
@@ -312,7 +401,7 @@
                     // Remove the dropdown after the ability is used
                     this.showVillagerControls = false;
 
-                    abilityMessage.textContent = `You have voted ${selectedPlayer.name} for mayor`;
+                    abilityMessage.textContent = `You have voted ${selectedPlayer.name} for ringleader`;
 
                     // Activate special effects
                     this.specialEffects();
@@ -507,6 +596,44 @@
                     // Mark the player as having used their ability
                     this.getCurrentPlayer().usedAbility = true;
                     this.savePlayersToLocalStorage();
+                },
+
+                sniffAbility() {
+                    // A werewolf or houndsman can sniff out the role of either player next to them
+                    const currentPlayer = this.getCurrentPlayer();
+                    const abilityMessage = document.getElementById('abilityMessage');
+                    let playerToSniffIndex = null;
+
+                    // Get the index of the current player
+                    const currentPlayerIndex = this.players.findIndex(player => player.id === currentPlayer.id);                    
+
+                    // Get the two adjacent players
+                    let playerToLeftIndex = currentPlayerIndex + 1;
+                    if (playerToLeftIndex > this.players.length - 1) {
+                        playerToLeftIndex = 0;
+                    }                    
+                    let playerToRightIndex = currentPlayerIndex - 1;
+                    if (playerToRightIndex < 0) {
+                        playerToRightIndex = this.players.length - 1;
+                    }                                      
+                    const playerToLeft = this.players[playerToLeftIndex];
+                    const playerToRight = this.players[playerToRightIndex];                    
+
+                    // Show the roles of the players who consented to be sniffed
+                    if (playerToLeft.allowSniffRight === "yes") {                        
+                        abilityMessage.textContent = `${playerToLeft.name} is ${useAorAn(playerToLeft.role)} ${playerToLeft.role}`;
+                    }
+                    if (playerToLeft.allowSniffRight === "yes" && playerToRight.allowSniffLeft === "yes") {                        
+                        abilityMessage.textContent += " & ";
+                    }
+                    if (playerToRight.allowSniffLeft === "yes") {                        
+                        abilityMessage.textContent += `${playerToRight.name} is ${useAorAn(playerToRight.role)} ${playerToRight.role}`;
+                    }
+                    if (playerToLeft.allowSniffRight !== "yes" && playerToRight.allowSniffLeft !== "yes") {
+                        abilityMessage.textContent += "No one wants to be sniffed";
+                    }
+
+                    this.specialEffects();
                 },
 
                 specialEffects() {
