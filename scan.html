@@ -36,7 +36,7 @@
             <!-- Role help description -->
             <div id="role-help" x-show="showRoleHelp">
                 <p x-text="roleHelp[role]"></p>
-                <p x-show="isHoundsmanInGame" class="houndsman-help">
+                <p x-show="isHoundskeeperInGame" class="houndskeeper-help">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     Werewolf and Houndskeeper players may sniff out the role of the players beside them. However, the players to be sniffed must first allow it by using the controls above.
                 </p>
@@ -72,9 +72,9 @@
             Track right
             <i class="fa-solid fa-arrow-right"></i>
         </button>      
-        <!-- Seer controls -->
-        <div id="seerControls" x-show="showSeerControls" x-transition.opacity.0.duration.1500ms>
-            <select class="playerSelect" x-model="selectedPlayer" @change="seerAbility()">
+        <!-- Watcher controls -->
+        <div id="watcherControls" x-show="showWatcherControls" x-transition.opacity.0.duration.1500ms>
+            <select class="playerSelect" x-model="selectedPlayer" @change="watcherAbility()">
                 <option value="">Select a player</option>
                 <template x-for="player in playersToView" :key="player.name">
                     <option x-text="player.name" :value="player.name"></option>
@@ -92,19 +92,19 @@
     <script>
         function setup() {
             return {
-                roles: ["werewolf", "villager", "seer", "tracker", "tanner", "saint", "gossip", "minion", "astrologer", "drifter", "houndsman"],
+                roles: ["werewolf", "villager", "watcher", "tracker", "deviant", "saint", "gossip", "turncloak", "astrologer", "drifter", "houndskeeper"],
                 roleHelp: {
-                    "werewolf": "You are a Werewolf. Your goal is to survive. You also win if all Werewolves vote to kill the Saint.",
-                    "villager": "You are a Villager. Your goal is to eliminate a Werewolf. Villagers may appoint a player as the ringleader, giving them an extra vote at the end.",
-                    "seer": "You are the Watcher. You can view another player and get a clue about their role.",
-                    "tracker": "You are the Tracker. You choose which half of the players at the table to track; this determines if a Werewolf is among them.",
-                    "tanner": "You are the Deviant. Your only goal is to convince the town to kill you.",
-                    "saint": "You the the Saint. Don't let the Werewolves discover your role. Discreetly guide the townsfolk cast the right vote.",
+                    "werewolf": "You are a Werewolf. Survive and ensure a member of the townfolk dies. You can also win if all Werewolves vote for the Saint.",
+                    "villager": "You are a Villager. Help the town eliminate a Werewolf. Villagers may agree to appoint a ringleader, giving that player an extra vote at the end.",
+                    "watcher": "You are the Watcher. You can view another player to gain a clue about their role.",
+                    "tracker": "You are the Tracker. You can choose which half of the players at the table to track; this will determine if a Werewolf is among them.",
+                    "deviant": "You are the Deviant. Your only goal is to trick the town into killing you.",
+                    "saint": "You the the Saint. Don't let the Werewolves discover your role. Discreetly guide the townsfolk to victory.",
                     "gossip": "You are the Gossip. You get 2 clues, the 2nd is available halfway through the game. One clue may be false.",
-                    "minion": "You are the Turncloak. You serve the Werewolves and must help them win — even if you must die.",
+                    "turncloak": "You are the Turncloak. You serve the Werewolves and must help them win — even if you must die.",
                     "astrologer": "You are the Astrologer. You can determine one role that is definitely in play.",
-                    "drifter": "You are the Drifter. You determine 2 roles not in play. In other words, you identify 2 of the non-player cards from the centre.",
-                    "houndsman": "You are the Houndsman. You may sniff out the role of either player next to you...if they consent."
+                    "drifter": "You are the Drifter. You can determine 2 roles not in play. In other words, you identify 2 of the non-player cards from the centre.",
+                    "houndskeeper": "You are the Houndskeeper. You may sniff out the role of either player next to you...if they first allow it."
                 },
                 players: [],
                 extraRoles:[],
@@ -116,7 +116,7 @@
                 holdTimeout: null,                
                 specialAbilityVisible: false,
                 showMainAbilityButton: true,
-                showSeerControls: false,
+                showWatcherControls: false,
                 showVillagerControls: false,
                 showTrackerButtons: false,
                 showRoleHelp: false,
@@ -164,7 +164,7 @@
                 },
 
                 allowSniff(direction) {
-                    // Allow the werewolf or houndsman from the selected direction to sniff the role of the current player
+                    // Allow the werewolf or houndskeeper from the selected direction to sniff the role of the current player
 
                     if (direction === 'left') {
                         // Toggle the sniff attribute
@@ -238,31 +238,27 @@
                   
                 },
 
-                isHoundsmanInGame() {
-                    // Return whether the Houndsman is in the game
+                isHoundskeeperInGame() {
+                    // Return whether the Houndskeeper is in the game
                     
                      // Get all the players, plus extra roles
                     const allRoles = this.players.map(player => player.role).concat(this.extraRoles);
                         
-                    if (allRoles.includes('houndsman')) {
-                        console.log('Houndsman in game');
+                    if (allRoles.includes('houndskeeper'))
                         return true;
-                    }
-                    else {
-                        console.log('Houndsman not in game');
-                        return false;                        
-                    }
+                    else
+                        return false;
                 },
 
                 init() {
                     this.loadPlayersFromLocalStorage();
                     this.loadExtraRolesFromLocalStorage();
                     this.getRole();
-                    this.isHoundsmanInGame = this.isHoundsmanInGame();
+                    this.isHoundskeeperInGame = this.isHoundskeeperInGame();
                     this.initializeSniffButtons();
 
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
-                    // this.players = this.players.map(player => ({ ...player, usedAbility: false }));
+                    this.players = this.players.map(player => ({ ...player, usedAbility: false }));
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
 
                     // If the game has started, the scan activates the special ability screen.
@@ -292,10 +288,10 @@
                 },
 
                 initializeSniffButtons() {
-                        // Only display these controls if the houndsman is in the game.
+                        // Only display these controls if the houndskeeper is in the game.
                         // Displays buttons in style according to saved state. Adds a delay to protect the player's privacy.                       
                         
-                        if (this.isHoundsmanInGame) {
+                        if (this.isHoundskeeperInGame) {
                             // Add a 2 second delay before the sniff button statuses are displayed
                             this.holdTimeout = setTimeout(() => {
                                 this.isSniffLeftAllowed = this.getCurrentPlayer().allowSniffLeft === "yes";
@@ -324,25 +320,25 @@
                     if (role === 'tracker') {                                                
                         // If the role is tracker, display the tracking buttons and hide the main special ability button
                         this.showTrackerButtons = true;
-                    }else if (role === 'seer') {
-                        // If the role is seer, display the seer controls
-                        this.showSeerControls = true;
-                        this.playersToView = this.players.filter(player => player.role && player.role !== 'seer');                                        
+                    }else if (role === 'watcher') {
+                        // If the role is watcher, display the watcher controls
+                        this.showWatcherControls = true;
+                        this.playersToView = this.players.filter(player => player.role && player.role !== 'watcher');                                        
                     } else if (role === 'villager') {
                         // If the role is villager, display the villager controls for voting
                         this.showVillagerControls = true;
                         this.playersToVote = this.players.filter(player => player.role && player.id !== currentPlayer.id);
-                    } else if (role === 'werewolf' && this.isHoundsmanInGame) {
-                        // If the role is werewolf or houndsman, activate the sniff ability
+                    } else if (role === 'werewolf' && this.isHoundskeeperInGame) {
+                        // If the role is werewolf or houndskeeper, activate the sniff ability
                         this.sniffAbility();
-                    } else if (role === 'houndsman') {
+                    } else if (role === 'houndskeeper') {
                         this.sniffAbility();
                     } else if (role === 'saint') {
                         this.saintAbility();                 
                     } else if (role === 'astrologer') {
                         this.astrologerAbility();
-                    } else if (role === 'minion') {
-                        this.minionAbility();
+                    } else if (role === 'turncloak') {
+                        this.turncloakAbility();
                     } else if (role === 'drifter') {
                         this.drifterAbility();
                     } else if (role === 'gossip') {
@@ -424,7 +420,8 @@
                      // Get all the special roles in this game except werewolf, villager, and astrologer
                      const possibleRoles = this.players
                             .filter(player => player.role && player.role !== 'werewolf' && player.role !== 'villager' && player.role !== 'astrologer')
-                            .map(player => player.role);
+                            .map(player => player.role);                    
+
                     // Now, pick a random role from the possible roles
                     const randomRole = possibleRoles[Math.floor(Math.random() * possibleRoles.length)];
                     abilityMessage.textContent = randomRole ? `The ${randomRole} is present` : 'No special roles found';
@@ -441,7 +438,31 @@
                     
                     // Pick two random roles from the 3 extras
                     const drifterResult = this.extraRoles.sort(() => 0.5 - Math.random()).slice(0, 2);
-                    abilityMessage.textContent = `No ${drifterResult.join(' or ')} present`;
+                    
+                    let prefix = "";
+                    let clue = "";
+
+                    drifterResultRolesAreSame = drifterResult[0] == drifterResult[1];
+
+                    // If the results contain the same role, change up the wording
+                    if (drifterResultRolesAreSame) {
+                        if (drifterResult[0] == "werewolf")
+                            clue = "Two less werewolves";
+                        else if (drifterResult[0] == "villager")
+                            clue = "Two less villagers";
+                    }
+                    else {
+                        for (drifterResultRole of drifterResult) {
+                            if (drifterResultRole == "werewolf" || drifterResultRole == "villager")
+                                prefix = "One less ";                                            
+                            else
+                                prefix = "No ";
+
+                            clue += prefix + drifterResultRole + ". ";
+                        }
+                    }
+
+                    abilityMessage.textContent = clue;
 
                     this.specialEffects();
 
@@ -450,8 +471,8 @@
                     this.savePlayersToLocalStorage();
                 },
 
-                minionAbility() {
-                    // The minion learns the identity of the werewolves
+                turncloakAbility() {
+                    // The turncloak learns the identity of the werewolves
                     const werewolfPlayers = this.players.filter(player => player.role === 'werewolf');
                     const werewolfNames = werewolfPlayers.map(player => player.name).join(' and ');
 
@@ -509,14 +530,14 @@
                     this.specialEffects();
                 },
 
-                seerAbility() {
-                    // The seer can view the role of another player. They'll get a true and false clue.
+                watcherAbility() {
+                    // The watcher can view the role of another player. They'll get a true and false clue.
                     const selectedPlayer = this.players.find(player => player.name === this.selectedPlayer);
                     const abilityMessage = document.getElementById('abilityMessage');
 
-                    // Get all roles except the seer and the selected player
+                    // Get all roles except the watcher and the selected player
                     let playerRoles = this.players
-                        .filter(player => player.role && player.role !== 'seer' && player.role !== selectedPlayer.role)
+                        .filter(player => player.role && player.role !== 'watcher' && player.role !== selectedPlayer.role)
                         .map(player => player.role);
                     let allRoles = playerRoles.concat(this.extraRoles);
 
@@ -535,7 +556,7 @@
                         abilityMessage.textContent = 'Player not found';
                     }
                     // Remove the dropdown after the ability is used
-                    this.showSeerControls = false;
+                    this.showWatcherControls = false;
 
                     // Activate special effects
                     this.specialEffects();
@@ -593,7 +614,7 @@
                 },
 
                 sniffAbility() {
-                    // A werewolf or houndsman can sniff out the role of either player next to them
+                    // A werewolf or houndskeeper can sniff out the role of either player next to them
                     const currentPlayer = this.getCurrentPlayer();
                     const abilityMessage = document.getElementById('abilityMessage');
                     let playerToSniffIndex = null;
