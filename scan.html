@@ -38,7 +38,7 @@
                 <p x-text="roleHelp[role]"></p>
                 <p x-show="isHoundsmanInGame" class="houndsman-help">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    Werewolf and Houndsman players may sniff out the role of the players beside them. However, players must allow it by using the controls above.
+                    Werewolf and Houndskeeper players may sniff out the role of the players beside them. However, the players to be sniffed must first allow it by using the controls above.
                 </p>
             </div>
         </div>        
@@ -319,27 +319,21 @@
                     if (currentPlayer.usedAbility) {
                         abilityMessage.textContent = 'You have already used your ability';
                         return;
-                    }
-
-                    // 1. Advanced roles: additional required controls are displayed
-                    // If the role is tracker, display the tracking buttons and hide the main special ability button
-                    if (role === 'tracker') {                                                
-                        this.showTrackerButtons = true;
                     }                    
-                    // If the role is seer, display the seer controls
-                    if (role === 'seer') {
+                    
+                    if (role === 'tracker') {                                                
+                        // If the role is tracker, display the tracking buttons and hide the main special ability button
+                        this.showTrackerButtons = true;
+                    }else if (role === 'seer') {
+                        // If the role is seer, display the seer controls
                         this.showSeerControls = true;
-                        this.playersToView = this.players.filter(player => player.role && player.role !== 'seer');
-                    }
-                    // If the role is villager, display the villager controls for voting
-                    if (role === 'villager') {
+                        this.playersToView = this.players.filter(player => player.role && player.role !== 'seer');                                        
+                    } else if (role === 'villager') {
+                        // If the role is villager, display the villager controls for voting
                         this.showVillagerControls = true;
                         this.playersToVote = this.players.filter(player => player.role && player.id !== currentPlayer.id);
-                    }
-
-                    // 2. Basic roles: no additional controls are required, just perform the ability immediately
-                    // If the role is werewolf or houndsman, activate the sniff ability
-                    if (role === 'werewolf' && this.isHoundsmanInGame) {                       
+                    } else if (role === 'werewolf' && this.isHoundsmanInGame) {
+                        // If the role is werewolf or houndsman, activate the sniff ability
                         this.sniffAbility();
                     } else if (role === 'houndsman') {
                         this.sniffAbility();

@@ -82,6 +82,15 @@
                         const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false, mayorVotes: 0, allowSniffLeft: "no", allowSniffRight: "no" }));
                         localStorage.setItem('players', JSON.stringify(resetPlayers));        
                     }
+
+                    // Reset extra roles and game state variables, if any
+                    localStorage.removeItem('extraRoles');
+                    localStorage.removeItem('isSecondHalf');
+                    localStorage.removeItem('firstGossip');
+                    localStorage.removeItem('secondGossip');
+                    localStorage.removeItem('isGameStarted');
+                    localStorage.removeItem('remainingTime');    
+                    localStorage.removeItem('isGameOver');
                 },
                 init() {
                     console.log('Setup initialized.');

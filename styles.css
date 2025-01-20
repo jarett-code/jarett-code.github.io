@@ -65,7 +65,7 @@ i {
  #role-help p {
     /* Readable font */
     padding: 20px;
-    font: 14pt sans-serif;
+    font: 12pt sans-serif;
  }
 
  #role-secondary-controls button {
@@ -308,6 +308,10 @@ i {
     animation: gossip2FadeIn 4s ease;
 }
 
+
+#hourglass-ringleader i {
+    color: darkred;
+}
 
 
 /* Buttons */

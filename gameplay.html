@@ -14,25 +14,31 @@
         <div class="panel">
             <h1>Game in progress</h1>
             <div id="time-keeper">                
-                <p id="hourglass">
+                <p id="hourglass" x-show="!isRingleaderDone">
                     <i class="fa-solid fa-hourglass-start" x-show="!halfwayPoint && !endPoint"></i>
-                    <i class="fa-solid fa-hourglass-half" x-show="halfwayPoint && !endPoint"></i>
-                    <i class="fa-solid fa-hourglass-end" x-show="endPoint"></i>
+                    <i class="fa-solid fa-hourglass-half" x-show="halfwayPoint && timeToDisplay > 10"></i>
+                    <i class="fa-solid fa-hourglass-end fa-beat-fade" x-show="timeToDisplay && timeToDisplay <= 10"></i>
                 </p>
-                <p id="timer" x-show="timer" x-text="timer"></p>
+                <p id="hourglass-ringleader" class="danger" x-show="isRingleaderDone">
+                    <i class="fa-solid fa-hourglass-start" x-show="timeToDisplay >= 40"></i>
+                    <i class="fa-solid fa-hourglass-half" x-show="timeToDisplay > 15 && timeToDisplay < 40"></i>                   
+                    <i class="fa-solid fa-hourglass-end fa-beat-fade" x-show="timeToDisplay <= 15"></i>
+                </p>
+                <p id="timer" x-show="timer" x-text="timer"></p>                
             </div>
-            <p x-text="instruction">You may scan a card to activate its ability.</p>
+            <h2 x-show="isGameOver">Final vote!</h2>
+            <p x-text="instruction" x-show="!isRingleaderDone">You may scan a card to activate its ability.</p>
         </div>
-        <div id="scan-area" class="panel clear" x-show="!endPoint">
+        <div id="scan-area" class="panel clear" x-show="!isRingleaderDone">
             <span>Place card under here.</span>
         </div>
-        <div id="mayor" class="panel" x-show="endPoint && mayor">
+        <div id="mayor" class="panel" x-show="isRingleaderDone && mayor">
             <h1><strong><span class="ringleader" x-text="mayor"></span></strong> was appointed ringleader!</h1>
-            <p x-show="mayor != 'No one'">They will cast 2 votes.</p>
+            <p x-show="mayor != 'No one'">They will cast 2 votes.</p>            
         </div>
         
         <div class="panel clear">
-            <div id="end-game-control" x-show="endPoint">
+            <div id="end-game-control" x-show="isRingleaderDone || isGameOver">
                 <div class="progress-display">
                     <span class="progress-percent">0%</span>
                     <br>
@@ -44,7 +50,7 @@
                     Back to lobby <small>(hold)</small>
                 </button>
             </div>
-            <div id="skip-game-control" x-show="!endPoint">
+            <div id="skip-game-control" x-show="!isRingleaderDone && !isGameOver">
                 <div class="progress-display">
                     <span class="progress-percent">0%</span>
                     <br>
@@ -53,7 +59,7 @@
                 </div>
                 <button type="button" class="pure-button">
                     <i class="fa-solid fa-forward"></i>
-                    Skip to vote <small>(hold)</small>
+                    Skip to ringleader results <small>(hold)</small>
                 </button>
             </div>
         </div>        
@@ -63,8 +69,11 @@
             return {
                 players: [],
                 timer: 0,
-                remainingTime: 0,
-                totalTime: 420,                
+                timeToDisplay: 0,
+                totalTime: 420,
+                ringleaderTime: 60,
+                isRingleaderDone: false,
+                isGameOver: false,
                 mayor: "",
                 halfwayPoint: false,
                 endPoint: false,
@@ -112,33 +121,41 @@
                             remainingTime = this.totalTime;
                         }
                         else {                         
-                            remainingTime = localStorage.getItem('remainingTime');
+                            remainingTime = localStorage.getItem('remainingTime');                            
                         }
                     }
                     
                     let interval = setInterval(() => {
-                        if (Alpine.store("gameState").isGameSkipped) {
-                            clearInterval(interval);
-                            remainingTime = 0;
-                            this.endPoint = true;
-                        }
+                        if (Alpine.store("gameState").isGameSkipped && !this.isRingleaderDone) {                            
+                            remainingTime = this.ringleaderTime;                             
+                        }                        
                         if (remainingTime <= 0) {
-                            clearInterval(interval);
-                            this.endPoint = true;
-                            this.mayor = this.getMayor();
+                            clearInterval(interval);                            
                             this.instruction = "Time's up. Vote!";
-                            localStorage.setItem('isGameOver', "yes");
+                            this.isGameOver = true;
+                            localStorage.setItem('isGameOver', "yes");                        
                         } else {
-                            if (remainingTime <= this.totalTime / 2) {
+                            let halfOfRegularTime = (this.totalTime - this.ringleaderTime) / 2;
+                            let RegularHalfwayPoint = halfOfRegularTime + this.ringleaderTime;
+                            if (remainingTime <= RegularHalfwayPoint) {
                                 localStorage.setItem('isSecondHalf', "yes");    
                                 this.halfwayPoint = true;            
                             }
                             else {
                                 localStorage.removeItem('isSecondHalf');
                             }
+
+                            if (remainingTime <= this.ringleaderTime && !this.isRingleaderDone) {
+                                this.mayor = this.getMayor();
+                                this.endPoint = true;                               
+                                this.isRingleaderDone = true;                                
+                            }
                             remainingTime--;
                             localStorage.setItem('remainingTime', remainingTime);
-                            this.updateTimerDisplay(remainingTime);
+
+                            // Update the timer display, show the total time minus the ringleader time (if it hasn't been done yet)
+                            this.timeToDisplay = remainingTime - (this.isRingleaderDone ? 0 : this.ringleaderTime);
+                            this.updateTimerDisplay(this.timeToDisplay);
                         }        
                     }, 1000);
                 },       
@@ -161,7 +178,8 @@
                         this.startTimer(); 
                     }
                     else {                        
-                        this.instruction = "Game over. Use the button below to go to the lobby.";
+                        this.instruction = "Game over.";
+                        this.isGameOver = true;
                     }
                 }                
             }
