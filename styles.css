@@ -197,11 +197,14 @@ i {
 
 #scan-area .circle {
     border-radius: 50%;
+    background-color: #333;
+    opacity: 0.5;
     width: 64px;
     height: 64px;
     color: white;
     border: 2px dashed white;
     position: absolute;
+    z-index: -20;
  }
 
 #mayor {

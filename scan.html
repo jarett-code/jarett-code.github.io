@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="scripts.js" defer></script>
+    <script src="scripts.js" defer></script>    
 </head>
 <body x-data="setup()">
     <div class="panel">
@@ -128,7 +128,7 @@
                 audio: new Audio('sounds/power_activated.mp3'),
                 role: null,
                 id: null,
-                selectedPlayer: null,                
+                selectedPlayer: null,
 
                 getRole() {
                     const params = new URLSearchParams(window.location.search);
