@@ -6,11 +6,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">        
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@alpinejs/sort@3.x.x/dist/cdn.min.js" defer></script> 
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="scripts.js" defer></script>
 </head>
 <body>
-    <div x-data="setup()" class="pure-g">
+    <div class="pure-g" x-data="setup()">
         <div id="player-container" class="panel pure-u-1">
             <h1>Enter players</h1>
             <form id="playerForm" @submit.prevent="addPlayer">                                
@@ -23,11 +24,12 @@
             <p>Enter players in clock-wise order.</p>
         </div>   
         <div class="panel" x-show="players.length > 0">
-            <ol id="playerList">
-                <template x-for="(player, index) in players" :key="index">
-                    <li>
-                        <span x-text="player.name"></span>
-                        <span x-show="showPlayerRoles && player.role">(was <span x-text="player.role"></span>)</span>
+            <ol id="playerList" x-sort="reorderPlayers">
+                <template x-for="(player, index) in players" :key="index"> 
+                    <!-- Using x-bind:x-ignore="true" avoids browser console errors in mobile mode for some reason. Sorting code works without it, though -->
+                    <li x-sort:item="index" x-bind:x-ignore="true">
+                        <span x-text="player.name" class="player-name"></span>
+                        <span x-show="showPlayerRoles && player.role">(was <span x-text="toTitleCase(player.role)" class="player-role"></span>)</span>
                         <button @click="removePlayer(index)">
                             <i class="fa-solid fa-circle-xmark"></i>
                         </button>                        
@@ -50,6 +52,9 @@
                 playerName: '',
                 players: [],
                 showPlayerRoles: false,
+                toTitleCase(str) {
+                    return str.replace(/\b\w/g, l => l.toUpperCase());
+                }, 
                 addPlayer() 
                 {
                     if (this.playerName) {
@@ -65,6 +70,21 @@
                 savePlayersToLocalStorage() {
                     localStorage.setItem('players', JSON.stringify(this.players));
                 },
+                reorderPlayers(item, position) {              
+                    // Reorder players according to their new position
+
+                    let newPlayerList = [];
+                    const playerList = document.querySelectorAll('#playerList li');
+                    
+                    // Get the new order of players from the current dom structure
+                    for (const element of playerList) {                        
+                        const playerName = element.querySelector('.player-name').textContent;
+                        newPlayerList.push({ name: playerName, role: '', usedAbility: false });                       
+                    }                    
+                    this.players = newPlayerList;
+                    localStorage.setItem('players', JSON.stringify(newPlayerList));
+                },
+                
                 loadPlayersFromLocalStorage() {
                     const storedPlayers = JSON.parse(localStorage.getItem('players'));
                     if (storedPlayers) {
@@ -92,13 +112,12 @@
                     localStorage.removeItem('remainingTime');    
                     localStorage.removeItem('isGameOver');
                 },
-                init() {
-                    console.log('Setup initialized.');
+                init() {                    
                     this.loadPlayersFromLocalStorage();
-                    this.showPlayerRoles = localStorage.getItem('showPlayerRoles') === "yes";
+                    this.showPlayerRoles = localStorage.getItem('showPlayerRoles') === "yes";                    
                 }
             }
-        }
+        }    
     </script>
 </body>
 </html>
