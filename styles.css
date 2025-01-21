@@ -185,7 +185,7 @@ i {
 #scan-area {
     margin-top: 80px;
     border: 2px dashed white;
-    width: 100%;
+    width: 99%;
     height: 200px;
     display: flex;
     justify-content: center;
@@ -194,6 +194,15 @@ i {
     color: white;
     text-shadow: 0 0 6px #000;
 }
+
+#scan-area .circle {
+    border-radius: 50%;
+    width: 64px;
+    height: 64px;
+    color: white;
+    border: 2px dashed white;
+    position: absolute;
+ }
 
 #mayor {
     padding: 80px 10px;
