@@ -50,7 +50,7 @@
         <div id="ability-effect"></div>
         <!-- The main ability button -->
          <!-- Removed this: :disabled="getCurrentPlayer().usedAbility" -->
-        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="activateRole()" x-transition.opacity.scale.30.duration.1500ms>
+        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="initializeAndActivate()" x-transition.opacity.scale.30.duration.1500ms>
             <i class="fa-solid fa-hands-holding-circle"></i>           
         </button>
         <!-- Villager controls -->
@@ -405,8 +405,8 @@
                         }                  
                 },
 
-                init() {
-                    // This determines what happens when the page first loads
+                initializeAndActivate() {
+                    // Initialize the game variables and activate the role's special ability                    
 
                     if (localStorage.getItem('isGameStarted') || localStorage.getItem('isClient')) {                        
                         // Download any game/player status updates if this is a network game.
@@ -416,13 +416,34 @@
                             // Wait for the download to complete before initializing the buttons
                             this.downloadNetworkData().then(() => {
                                 this.initializeGameVariables();
+                                this.activateRole();
                             });
                         }
                         else {                            
-                            console.log('Local game detected');                           
                             this.initializeGameVariables();
+                            this.activateRole();
                         }
                     }
+                },
+
+                init() {
+                    // This determines what happens when the page first loads
+
+                    // if (localStorage.getItem('isGameStarted') || localStorage.getItem('isClient')) {                        
+                    //     // Download any game/player status updates if this is a network game.
+                    //     if (localStorage.getItem('isNetworkGame')) {
+                    //         console.log('Network game detected: downloading updates');
+                            
+                    //         // Wait for the download to complete before initializing the buttons
+                    //         this.downloadNetworkData().then(() => {
+                    //             this.initializeGameVariables();
+                    //         });
+                    //     }
+                    //     else {                            
+                    //         console.log('Local game detected');                           
+                    //         this.initializeGameVariables();
+                    //     }
+                    // }
 
                     // If the role scan has started, but the game hasn't, assign roles
                     if (localStorage.getItem('isScanStarted') && !localStorage.getItem('isGameStarted')) {
