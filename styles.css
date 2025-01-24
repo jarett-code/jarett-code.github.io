@@ -26,6 +26,12 @@ body {
     justify-content: center;
 }
 
+.input-help {
+    font-size: 10pt;
+    color: #666;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
 /* Icons */
 i {
     color: #666;
@@ -73,10 +79,15 @@ i {
     padding: 10px 10px;
  }
 
- #role-secondary-controls button.active {
+button.active {
     background-color: dodgerblue;
     color: white;
     box-shadow: skyblue 0 0 6px 2px;
+ }
+
+ button.deactivated {
+    background-color: #333;
+    color: #666;
  }
 
  #role-secondary-controls button.active i {    
@@ -127,12 +138,16 @@ i {
     animation: grow 4s reverse;
 }
 
+.pure-g {
+    max-width: 490px;
+}
+
 .panel {
     background-color: white;
     opacity: 0.8;
     border-radius: 4px;
     padding:20px;
-    margin: 22px 10px;
+    margin: 22px 10px;    
     width: 100%;
     text-align: center;
 }
@@ -212,11 +227,6 @@ i {
 }
 .ringleader {        
     color: #0251DF;
-}
-
-
-#begin-button {
-    margin-top: 230px;
 }
 
 #start-game, #end-game {

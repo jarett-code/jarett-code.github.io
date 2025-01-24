@@ -34,7 +34,7 @@
             <span>Place card under here.</span>
         </div>
                 <!-- TESTING FEATURE: Quick links to character roles -->            
-                <!-- <a class="pure-button button-small" href="scan.html?role=villager&id=8428">Villager1</a>
+                <a class="pure-button button-small" href="scan.html?role=villager&id=8428">Villager1</a>
                 <a class="pure-button button-small" href="scan.html?role=villager&id=9510">Villager2</a>
                 <a class="pure-button button-small" href="scan.html?role=villager&id=7538">Villager3</a>
                 <a class="pure-button button-small" href="scan.html?role=werewolf&id=5174">Werewolf1</a>
@@ -48,7 +48,7 @@
                 <a class="pure-button button-small" href="scan.html?role=saint&id=1240">Saint</a>
                 <a class="pure-button button-small" href="scan.html?role=tracker&id=9671">Tracker</a>
                 <a class="pure-button button-small" href="scan.html?role=gossip&id=5732">Gossip</a>
-                <a class="pure-button button-small" href="scan.html?role=houndskeeper&id=4957">Houndskeeper</a> -->
+                <a class="pure-button button-small" href="scan.html?role=houndskeeper&id=4957">Houndskeeper</a>
                 <!-- // TESTING FEATURE: Quick links to character roles -->   
         <div id="mayor" class="panel" x-show="isRingleaderDone && mayor">
             <h1><strong><span class="ringleader" x-text="mayor"></span></strong> was appointed ringleader!</h1>
@@ -129,6 +129,32 @@
                         return 'No one';
                     }
                 },
+
+                // Upload the halfway point indicatorto the remote JSON file
+                // uploadHalfwayPoint() {
+                //     // If this is a network game, update the remote JSON file to show that the game is halfway done
+                //     if (localStorage.getItem('isNetworkGame')) {
+                //         let req = new XMLHttpRequest();
+                //         const binId = localStorage.getItem('gameId');
+
+                //         req.onreadystatechange = () => {
+                //             if (req.readyState == XMLHttpRequest.DONE) {
+                //                 console.log(req.responseText);
+                //             }
+                //         };
+
+                //         const gameState = {
+                //             players: this.players,
+                //             isSecondHalf: true
+                //         };
+
+                //         req.open("PUT", `https://api.jsonbin.io/v3/b/${binId}`, true);
+                //         req.setRequestHeader("Content-Type", "application/json");
+                //         req.setRequestHeader("X-Master-Key", "$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW");
+                //         req.send(JSON.stringify(gameState));
+                //     }
+                // },
+
                 startTimer() {                    
 
                     // If the game has started, check for a timer
@@ -149,15 +175,16 @@
                         }                        
                         if (remainingTime <= 0) {
                             clearInterval(interval);                            
-                            this.instruction = "Time's up. Vote!";
-                            this.isGameOver = true;
-                            localStorage.setItem('isGameOver', "yes");                        
+                            this.gameOver();                        
                         } else {
                             let halfOfRegularTime = (this.totalTime - this.ringleaderTime) / 2;
                             let RegularHalfwayPoint = halfOfRegularTime + this.ringleaderTime;
                             if (remainingTime <= RegularHalfwayPoint) {
-                                localStorage.setItem('isSecondHalf', "yes");    
-                                this.halfwayPoint = true;            
+                                if (!this.halfwayPoint) {
+                                    localStorage.setItem('isSecondHalf', true);
+                                    this.halfwayPoint = true;
+                                    this.uploadHalfwayPoint();
+                                }        
                             }
                             else {
                                 localStorage.removeItem('isSecondHalf');
@@ -182,6 +209,39 @@
                     const seconds = remainingTime % 60;
                     this.timer = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
                 },
+
+                gameOver() {
+                    // End the game. Indicate that the game is over and show the final vote instruction.
+
+                    this.instruction = "Time's up. Vote!";
+                    this.isGameOver = true;
+                    localStorage.setItem('isGameOver', "yes");
+                    console.log("Game over, man! Game over!");
+
+                    // If this is a network game, update the remote JSON file to show that the game is over
+                    if (localStorage.getItem('isNetworkGame')) {
+                        // If this is a network game, update the remote JSON file to show that the game is over
+                        let req = new XMLHttpRequest();
+                        const binId = localStorage.getItem('gameId');
+
+                        req.onreadystatechange = () => {
+                            if (req.readyState == XMLHttpRequest.DONE) {
+                                console.log(req.responseText);
+                            }
+                        };
+
+                        const gameState = {
+                            players: this.players,                            
+                            isGameOver: this.isGameOver
+                        };
+
+                        req.open("PUT", `https://api.jsonbin.io/v3/b/${binId}`, true);
+                        req.setRequestHeader("Content-Type", "application/json");
+                        req.setRequestHeader("X-Master-Key", "$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW");
+                        req.send(JSON.stringify(gameState));
+                    }
+                },
+
                 init() {
                     // Set up data store for skipped game variable. Alpine.store is used because this variable is updated in a plain js function.
                     Alpine.store("gameState", {
@@ -191,8 +251,10 @@
                     this.loadPlayersFromLocalStorage();
                     this.checkGameStartConditions();
 
+                    const isGameOver = localStorage.getItem('isGameOver') === 'true';
+
                     // Timer function
-                    if (!localStorage.getItem('isGameOver')) {
+                    if (!isGameOver) {
                         this.startTimer(); 
                     }
                     else {                        

@@ -37,8 +37,17 @@
                 </template>
             </ol>
         </div>
-        <div class="panel clear">
-            <a href="next_player_to_scan.html" id="start-game" class="pure-u-1-2 pure-button button-primary" @click="startScan">
+        <div class="panel clear" x-data="{ networkGame: false, gameName: '' }">
+            <div id="network-game-controls">
+                <button class="pure-button button-primary" @click="networkGame = !networkGame">
+                    <i class="fa-solid fa-globe"></i>
+                    Network game
+                </button>
+                <form id="network-game" x-show="networkGame" @submit.prevent="importPlayersFromRemoteJSON">
+                    <input type="text" id="networkGameId" placeholder="Game name" required x-model="gameName">
+                </form>
+            </div>
+            <a href="next_player_to_scan.html" id="start-game" class="pure-u-1-2 pure-button button-primary" @click="startScan" :disabled="players.length < 3 || (networkGame && !gameName)">
                 <i class="fa-solid fa-circle-play"></i>
                 Start
             </a>
@@ -52,6 +61,31 @@
                 playerName: '',
                 players: [],
                 showPlayerRoles: false,
+
+                importPlayersFromRemoteJSON() {
+                    fetch('https://api.jsonbin.io/v3/qs/678fef21acd3cb34a8d0ac89')
+                        .then(response => response.json())
+                        .then(data => {
+                            this.players = data.record;
+                            this.savePlayersToLocalStorage();
+                        });
+                },    
+
+                updatePlayersToRemoteJSON() {
+                    let req = new XMLHttpRequest();
+
+                    req.onreadystatechange = () => {
+                        if (req.readyState == XMLHttpRequest.DONE) {
+                            console.log(req.responseText);
+                        }
+                    };                    
+                    req.open("POST", "https://api.jsonbin.io/v3/b", true);
+                    req.setRequestHeader("Content-Type", "application/json");
+                    req.setRequestHeader("X-Master-Key", "$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW");
+                    req.setRequestHeader("X-Bin-Name", "werewolf-jay");
+                    req.send('{"sample": "Hello World"}');
+                },
+
                 toTitleCase(str) {
                     return str.replace(/\b\w/g, l => l.toUpperCase());
                 }, 
@@ -91,7 +125,8 @@
                         this.players = storedPlayers;
                     }
                 },
-                startScan() {                
+
+                startScan() {
                     localStorage.setItem('isScanStarted', "yes");
                     localStorage.removeItem('showPlayerRoles');
 
@@ -114,7 +149,11 @@
                 },
                 init() {                    
                     this.loadPlayersFromLocalStorage();
-                    this.showPlayerRoles = localStorage.getItem('showPlayerRoles') === "yes";                    
+                    // this.updatePlayersToRemoteJSON();
+                    // this.importCollection();
+                    // this.importFromCollection();
+
+                    this.showPlayerRoles = localStorage.getItem('showPlayerRoles') === "yes";
                 }
             }
         }    

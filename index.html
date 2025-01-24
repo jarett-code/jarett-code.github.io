@@ -3,18 +3,203 @@
 <head>
     <title>Werewolf</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">    
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
-<body>
+<body x-data="setupGame()">
     <div class="pure-g">
-        <div class="panel">
+        <div class="panel pure-u-1">
             <h1>Werewolves Within</h1>
-            <p>Gather the townsfolk around the campfire.<br> Will you make it through the night?</p>
+            <p>Gather the townsfolk around the campfire.<br> Will you make it through the night?</p>            
         </div>
+
+        <div class="panel clear pure-u-1">
+            <button type="button" class="pure-button button-primary" @click="isHost = true" :class="{ 'active': isHost }">
+                <i class="fa-solid fa-house-user"></i>
+                Create game
+            </button>
+            <button type="button" class="pure-button button-primary" @click="isHost = false"  :class="{ 'active': !isHost}">
+                <i class="fa-solid fa-people-arrows"></i>
+                Join game
+            </button>
+        </div>
+
+        <div class="panel pure-u-1" x-show="isHost">            
+            <!-- <p>Will you be using physical cards?</p>
+            <button class="pure-button button-primary" @click="isCards = true" :class="{ 'active': isCards }">
+                <i class="fa-solid fa-square-check"></i>
+                Yes
+            </button>
+            <button class="pure-button button-primary" @click="isCards = false" :class="{ 'active': !isCards}">
+                <i class="fa-solid fa-square-xmark"></i>
+                No
+            </button>
+            <p x-show="!isCards"><small>If you want to print some cards for next time, <a href="#">download the cards here</a>.</small></p> -->
+            
+            <button class="pure-button button-primary" @click="isNetworkGame = false" :class="{ 'active': !isNetworkGame }">
+                <i class="fa-solid fa-user"></i>
+                Single device
+            </button>
+            <button class="pure-button button-primary" @click="isNetworkGame = true" :class="{ 'active': isNetworkGame }"> 
+                <i class="fa-solid fa-users"></i>
+                Many
+            </button>
+            <p x-show="!isNetworkGame">All cards will be scanned with this phone.</p>
+            <form class="pure-form" x-show="isNetworkGame" @submit.prevent="createNetworkGame()" style="margin: 12px 0;">
+                <input type="text" id="networkGameId" placeholder="Village/game name" required x-model="gameName">
+                <p class="input-help">Share this name with friends.</p>                
+            </form>
+            <button class="pure-button button-primary" @click="createGame()" :disabled="isNetworkGame && !gameName">
+                <i class="fa-solid fa-circle-play"></i>
+                Launch lobby
+            </button>
+        </div>
+
+
+        <!-- I'll use this later
         <div class="panel clear">
-            <a id="begin-button" href="setup.html" class="pure-button button-primary pure-u-1-2">🐺 Begin</a>
-        </div>
+            <div id="network-game-controls">
+                <button class="pure-button button-primary" @click="isNetworkGame = !isNetworkGame">
+                    <i class="fa-solid fa-globe"></i>
+                    Network game
+                </button>
+                <form id="network-game" x-show="isNetworkGame" @submit.prevent="createNetworkGame()">
+                    <input type="text" id="networkGameId" placeholder="Game name" required x-model="gameName">
+                    <button type="submit" class="pure-button button-primary" :disabled="isNetworkGame && !gameName">
+                        <i class="fa-solid fa-circle-play"></i>
+                        Connect
+                    </button>
+                </form>
+            </div>            
+        </div> -->
+        <div class="panel pure-u-1" x-show="!isHost">
+            <h2>Join a network game</h2>
+            <button class="pure-button button-primary" @click="findNetworkGames()">
+                <i class="fa-solid fa-search"></i>
+                Find games
+            </button>
+            <ul class="pure-menu-list">
+                <template x-for="(game, index) in networkGameList" :key="index"> 
+                    <li class="pure-menu-item">
+                        <a x-text="game.snippetMeta.name" class="pure-menu-link" href="#" @click="joinNetworkGame(gameId=game.record, gameName=game.snippetMeta.name)"></a>
+                    </li>
+                </template>
+            </ul>
+        </div>        
     </div>
+
+    <script>
+        RESULT = [
+            {
+                "private": true,
+                "snippetMeta": {
+                    "name": "Gallowstone"
+                },
+                "record": "67916562ad19ca34f8f2c727",
+                "createdAt": "2025-01-22T21:38:42.602Z"
+            },
+            {
+                "private": true,
+                "snippetMeta": {
+                    "name": "Jarett's game"
+                },
+                "record": "679042bbacd3cb34a8d0d072",
+                "createdAt": "2025-01-22T00:58:35.430Z"
+            },
+            {
+                "private": true,
+                "snippetMeta": {
+                    "name": "another-game"
+                },
+                "record": "678ffcc9e41b4d34e47c790d",
+                "createdAt": "2025-01-21T20:00:09.220Z"
+            },
+            {
+                "private": true,
+                "snippetMeta": {
+                    "name": "my-game"
+                },
+                "record": "678ffa49ad19ca34f8f22f44",
+                "createdAt": "2025-01-21T19:49:29.803Z"
+            }
+        ]
+
+
+        function setupGame() {
+            return {
+                isNetworkGame: false,                
+                // isCards: false,
+                gameName: '',
+                isHost: true,
+                networkGameList: [],
+                createGame() {
+                    localStorage.setItem('isNetworkGame', false);
+                    localStorage.setItem('gameName', this.gameName);
+                    window.location.href = 'setup.html';
+                },
+
+                joinNetworkGame(gameId, gameName) {
+                    localStorage.setItem('isNetworkGame', true);
+                    localStorage.setItem('gameId', gameId);
+                    localStorage.setItem('gameName', gameName);
+                    localStorage.setItem('isClient', true);
+                    window.location.href = 'gameplay_client.html';
+                },
+
+                createNetworkGame() {
+                    // Create a new network game by saving the game data to a remote JSON file
+                    fetch('https://api.jsonbin.io/v3/b', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW',
+                            'X-Collection-Id': '678ff8e4acd3cb34a8d0b110',
+                            'X-Bin-Name': this.gameName
+                        },
+                        body: JSON.stringify({ gameName: this.gameName, players: []})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        // If the creation was successful, show a success message
+                        if (data.record) {
+                            this.isNetworkGame = true;
+                        }
+                    });
+                    // alert("creating network game....");
+                },
+                findNetworkGames() {
+                    // Find all network games by fetching the remote JSON file
+                    // fetch("https://api.jsonbin.io/v3/c/678ff8e4acd3cb34a8d0b110/bins", {
+                    //     method: 'GET',
+                    //     headers: {
+                    //         'Content-Type': 'application/json',
+                    //         'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW'                          
+                    //     }
+                    // })
+                    // .then(response => response.json())
+                    // .then(data => {
+                    //     console.log(data);
+                    //     this.displayNetworkGames(data.record);
+                    // });
+                    
+
+                    RESULT.forEach(record => {
+                        console.log(record.snippetMeta);
+                        this.networkGameList.push(record);
+                    });
+
+                },
+                displayNetworkGames(games) {
+                    // Display the network games
+                    this.networkGameList = games;
+                }
+            }
+        }
+
+        
+    </script>
 </body>
 </html>
