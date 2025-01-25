@@ -58,7 +58,7 @@
                 addPlayer() 
                 {
                     if (this.playerName) {
-                        this.players.push({ name: this.playerName, role: '', usedAbility: false });
+                        this.players.push({ name: this.playerName, role: '', usedAbility: false, mayorVotes: 0, sniffResults: []});
                         this.playerName = '';
                         this.savePlayersToLocalStorage();
                     }
@@ -99,7 +99,7 @@
                     // Reset all players to their initial state
                     if (storedPlayers) {
                         // Reset all players to their initial state
-                        const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false, mayorVotes: 0, allowSniffLeft: "no", allowSniffRight: "no" }));
+                        const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false, mayorVotes: 0, sniffResults: []}));
                         localStorage.setItem('players', JSON.stringify(resetPlayers));        
                     }
 

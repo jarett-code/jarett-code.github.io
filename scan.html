@@ -15,30 +15,37 @@
         <p id="gameInfo">Scan the player cards to assign roles.</p>
     </div>
 
+    <div id="sniffScreen" x-show="showSniffScreen">
+        <div style="text-align:center;">
+            <p x-text="snifferInstructions" x-show="displaySnifferInstructions" x-transition:leave.opacity.0.duration.5000ms></p>
+            <p x-text="sniffInstructions"></p> 
+            <p class="sniffBackResult" x-text="sniffBackResult" x-show="sniffBackResult"></p>
+        </div>     
+        <button id="exit-sniff" class="pure-button button-secondary" @click="exitSniff()">
+            <i class="fa-solid fa-times"></i>
+            Exit
+        </button>
+    </div>
+
     <div id="specialAbility" class="special-ability" x-show="specialAbilityVisible">
         <!-- Secondary controls -->
         <div id="role-secondary-controls">
-            <!-- Allow sniff left control -->
-            <button class="pure-button button-secondary sniff" @click="allowSniff(direction='left')" :class="{ 'active': isSniffLeftAllowed }" x-show="showSniffButtons" :disabled="lockSniffLeft" x-transition.opacity.100.duration.2000ms>
-                <i class="fa-solid fa-arrow-left"></i>
-                Allow sniff
+            <!-- Sniff control -->
+             <button class="pure-button button-secondary" x-show="isHoundskeeper" @click="initiateSniff()">
+                <i class="fa-solid fa-nose"></i>
+                Sniff
             </button>
             <!-- Role help control -->
             <button class="pure-button button-secondary" @click="showRoleHelp = !showRoleHelp" :class="{ 'active': showRoleHelp }">
                 <i class="fa-solid fa-question"></i>
                 Help
-            </button>
-            <!-- Allow sniff right control -->
-            <button class="pure-button button-secondary sniff" @click="allowSniff(direction='right')" :class="{ 'active': isSniffRightAllowed }" x-show="showSniffButtons" :disabled="lockSniffRight" x-transition.opacity.100.duration.2000ms>
-                Allow sniff
-                <i class="fa-solid fa-arrow-right"></i>
             </button>            
             <!-- Role help description -->
             <div id="role-help" x-show="showRoleHelp">
                 <p x-text="roleHelp[role]"></p>
-                <p x-show="isHoundskeeperInGame" class="houndskeeper-help">
+                <p x-show="isHoundskeeper" class="houndskeeper-help">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    Werewolf and Houndskeeper players may sniff out the role of the players beside them. However, the players to be sniffed must first allow it by using the controls above.
+                    Houndskeeper & Werewolf players may sniff out the role of adjacent players. Other players may bluff a sniff.
                 </p>
             </div>
         </div>        
@@ -104,7 +111,7 @@
                     "turncloak": "You are the Turncloak. You serve the Werewolves and must help them win — even if you must die.",
                     "astrologer": "You are the Astrologer. You can determine one role that is definitely in play.",
                     "drifter": "You are the Drifter. You can determine 2 roles not in play. In other words, you identify 2 of the non-player cards from the centre.",
-                    "houndskeeper": "You are the Houndskeeper. You may sniff out the role of either player next to you...if they first allow it."
+                    "houndskeeper": "You are the Houndskeeper. You may sniff out the role of either player next to you...if they allow it. Use the 'Sniff' and pass the device to your target. Afterward, you can get your results using the round button below."
                 },
                 players: [],
                 extraRoles:[],
@@ -120,11 +127,12 @@
                 showVillagerControls: false,
                 showTrackerButtons: false,
                 showRoleHelp: false,
-                showSniffButtons: false,                
-                isSniffLeftAllowed: false,
-                isSniffRightAllowed: false,
-                lockSniffLeft: false,
-                lockSniffRight: false,
+                showSniffScreen: false,
+                sniffResult: '',
+                sniffBackResult: '',
+                snifferInstructions: '',
+                displaySnifferInstructions: true,
+                sniffInstructions: 'Pass the device to the player on your left or right for scanning.',  
                 audio: new Audio('sounds/power_activated.mp3'),
                 role: null,
                 id: null,
@@ -165,57 +173,73 @@
                     }
                 },
 
-                allowSniff(direction) {
-                    // Allow a werewolf or houndskeeper from the selected direction to sniff the role of the current player
+                initiateSniff() {
+                    // When the player clicks the sniff button, a screen appears
+                    this.showSniffScreen = true;
 
-                    const currentPlayer = this.getCurrentPlayer();
-                    const adjacentPlayer = this.getAdjacentPlayer(direction);
-                    let sniffText = '';
+                    // Update the player list to indicate that this player is trying to sniff
+                    let currentPlayer = this.getCurrentPlayer();
+                    const leftPlayer = this.getAdjacentPlayer("left");
+                    const rightPlayer = this.getAdjacentPlayer("right");
 
-                    if (direction === 'left') {
-                        // Toggle the sniff attribute                        
-                        if (currentPlayer.allowSniffLeft !== "yes") {                            
-                            currentPlayer.allowSniffLeft = "yes";
-                            this.isSniffLeftAllowed = true;
-                            sniffText = `${adjacentPlayer.name} can now sniff you (if they are a Houndskeeper or Werewolf).`;                            
-                        }
-                        else {
-                            currentPlayer.allowSniffLeft = "no";
-                            this.isSniffLeftAllowed = false;
-                            sniffText = `${adjacentPlayer.name} can no longer sniff you.`;
-                        }                       
-                    }
-                    else if (direction === 'right') {
-                        // Toggle the sniff attribute
-                        if (currentPlayer.allowSniffRight !== "yes") {
-                            currentPlayer.allowSniffRight = "yes";
-                            this.isSniffRightAllowed = true;
-                            sniffText = `${adjacentPlayer.name} can now sniff you (if they are a Werewolf or Houndskeeper).`;
-                        }
-                        else {
-                            currentPlayer.allowSniffRight = "no";
-                            this.isSniffRightAllowed = false;
-                            sniffText = `${adjacentPlayer.name} can no longer sniff you.`;
-                        }
-                    }
-                    
-                    // Delete any existing sniff message elements
-                    const existingSniffMessage = document.querySelector('p.sniff-message');
-                    if (existingSniffMessage) {
-                        existingSniffMessage.remove();
-                    }
-
-                    // Add a new message element to the DOM
-                    sniffMessageElement = document.createElement('p');
-                    sniffMessageElement.textContent = sniffText;
-                    sniffMessageElement.classList.add('sniff-message');
-                    sniffMessageElement.setAttribute('x-data', '{ sniffTextToggle: true }');
-                    sniffMessageElement.setAttribute('x-show', 'sniffTextToggle; setTimeout(() => { sniffTextToggle = false; }, 4000);');
-                    sniffMessageElement.setAttribute('x-transition:leave.duration.2000ms', '');
-                    document.getElementById('role-secondary-controls').appendChild(sniffMessageElement);                   
-
+                    this.snifferInstructions = `(Pass the device to either ${leftPlayer.name} or ${rightPlayer.name})`;
+                    this.displaySnifferInstructions = false;
+                    this.sniffInstructions = `Let ${currentPlayer.name} sniff you?`;
+                    currentPlayer.isSniffing = true;
                     this.savePlayersToLocalStorage();
                 },
+                
+                receiveSniff(sniffingPlayer) {
+                    // When the player receives the device, they can allow the player to sniff them
+
+                    function addSniffResultToPlayer(player, sniffClue) {
+                        // Add the sniff result to the player's sniff results
+                        if (player.sniffResults) {
+                            // Add the sniff clue as long as it's not already in the list
+                            if (!player.sniffResults.includes(sniffClue))
+                                player.sniffResults.push(sniffClue);
+                        }
+                        else {
+                            player.sniffResults = [sniffClue];
+                        }
+                    }  
+
+                    let currentPlayer = this.getCurrentPlayer();
+                    const sniffResult = `${currentPlayer.name} is ${this.useAorAn(currentPlayer.role)} ${currentPlayer.role}`;
+
+                    // Ensure the player giving the sniff is a Werewolf or Houndskeeper before giving the clue
+                    if (sniffingPlayer.role === 'werewolf' || sniffingPlayer.role === 'houndskeeper') {
+                        addSniffResultToPlayer(sniffingPlayer, sniffResult);
+                    }       
+
+                    // If this player is a Werewolf or Houndskeeper, they can sniff back! Show them the sniffer's role.
+                    if (currentPlayer.role === 'werewolf' || currentPlayer.role === 'houndskeeper') {
+                        this.sniffBackResult = `${sniffingPlayer.name} is ${this.useAorAn(sniffingPlayer.role)} ${sniffingPlayer.role}`;
+                        addSniffResultToPlayer(currentPlayer, this.sniffBackResult);
+                    }
+
+                    // Mark the player as no longer sniffing
+                    sniffingPlayer.isSniffing = false;  
+                    
+                    localStorage.setItem('players', JSON.stringify(this.players));
+
+                    this.sniffInstructions = `${sniffingPlayer.name} attempted to sniff you! `;
+                    this.sniffInstructions += "Exit and return the device.";
+
+                },
+
+                exitSniff() {
+                    // When the player exits the sniff, the screen disappears
+                    this.showSniffScreen = false;
+
+                    // Remove the sniffing flag from the player
+                    let currentPlayer = this.getCurrentPlayer();
+                    currentPlayer.isSniffing = false;
+                    this.savePlayersToLocalStorage();
+
+                    // Go back to the gameplay page
+                    window.location.href = 'gameplay.html';
+                },               
 
                 assignRole(role) {
                     // Get the next unassigned player and assign the role
@@ -279,11 +303,19 @@
                     this.loadPlayersFromLocalStorage();
                     this.loadExtraRolesFromLocalStorage();
                     this.getRole();
-                    this.isHoundskeeperInGame = this.isHoundskeeperInGame();
-                    this.initializeSniffButtons();
+                    this.isHoundskeeper = this.isHoundskeeperInGame();
 
+                    // Check if a player beside this one is sniffing and show the sniff screen if so
+                    sniffingPlayer = this.players.find(player => player.isSniffing);
+                    if (sniffingPlayer) {
+                        isAdjacent = sniffingPlayer == this.getAdjacentPlayer("left") || sniffingPlayer == this.getAdjacentPlayer("right");
+                        if (isAdjacent) {
+                            this.showSniffScreen = true;
+                            this.receiveSniff(sniffingPlayer);
+                        }
+                    }
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
-                    this.players = this.players.map(player => ({ ...player, usedAbility: false }));
+                    // this.players = this.players.map(player => ({ ...player, usedAbility: false }));
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
 
                     // If the game has started, the scan activates the special ability screen.
@@ -310,30 +342,6 @@
                             window.location.href = 'next_player_to_scan.html';
                         }
                     }
-                },
-
-                initializeSniffButtons() {
-                        // Only display these controls if the houndskeeper is in the game.
-                        // Displays buttons in style according to saved state. Adds a delay to protect the player's privacy.
-                        
-                        if (this.isHoundskeeperInGame) {
-                            const currentPlayer = this.getCurrentPlayer();                            
-
-                            // Add a 2 second delay before the sniff button statuses are displayed
-                            this.holdTimeout = setTimeout(() => {
-                                this.isSniffLeftAllowed = currentPlayer.allowSniffLeft === "yes";
-                                this.isSniffRightAllowed = currentPlayer.allowSniffRight === "yes";                                
-
-                                // Lock the allow sniff buttons if the player has already sniffed the adjacent players themselves.
-                                if (currentPlayer.allowSniffLeftPermanent === "yes")
-                                    this.lockSniffLeft = true;
-
-                                if (currentPlayer.allowSniffRightPermanent === "yes")
-                                    this.lockSniffRight = true;                                
-
-                                this.showSniffButtons = true;
-                            }, 2000);
-                        } 
                 },
 
                 activateRole() {
@@ -363,7 +371,7 @@
                         // If the role is villager, display the villager controls for voting
                         this.showVillagerControls = true;
                         this.playersToVote = this.players.filter(player => player.role && player.id !== currentPlayer.id);
-                    } else if (role === 'werewolf' && this.isHoundskeeperInGame) {
+                    } else if (role === 'werewolf' && this.isHoundskeeper) {
                         // If the role is werewolf or houndskeeper, activate the sniff ability
                         this.sniffAbility();
                     } else if (role === 'houndskeeper') {
@@ -407,7 +415,6 @@
                             "It's not a lie if you believe it",
                             "The bigger the lie, the more they'll believe it",
                             "You're a regular Pinocchio",
-                            "You...may be a werewolf",
                             "All is fair in love and werewolves",
                         ];
                         abilityMessage.textContent = bluffingMessages[Math.floor(Math.random() * bluffingMessages.length)];
@@ -671,43 +678,20 @@
 
                 sniffAbility() {
                     // A werewolf or houndskeeper can sniff out the role of either player next to them
-                    const currentPlayer = this.getCurrentPlayer();
+                    let currentPlayer = this.getCurrentPlayer();
                     const abilityMessage = document.getElementById('abilityMessage');
-                    let playerToSniffIndex = null;
 
                     // Get the index of the current player
-                    const currentPlayerIndex = this.players.findIndex(player => player.id === currentPlayer.id);                    
-
-                    // Get the two adjacent players                   
-                    const playerToLeft = this.getAdjacentPlayer("left");
-                    const playerToRight = this.getAdjacentPlayer("right"); 
-                
-                    // Show the roles of the players who consented to be sniffed
-                    if (playerToLeft.allowSniffRight === "yes") {                        
-                        abilityMessage.textContent = `${playerToLeft.name} is ${useAorAn(playerToLeft.role)} ${playerToLeft.role}`;                        
-
-                        // Permanently allow sniffing in return. It's only fair.
-                        currentPlayer.allowSniffLeft = "yes";
-                        currentPlayer.allowSniffLeftPermanent = "yes";
-                        this.isSniffLeftAllowed = true;
-                        this.lockSniffLeft = true;
-                    }
-                    if (playerToLeft.allowSniffRight === "yes" && playerToRight.allowSniffLeft === "yes") {                        
-                        abilityMessage.textContent += " & ";
-                    }
-                    if (playerToRight.allowSniffLeft === "yes") {                        
-                        abilityMessage.textContent += `${playerToRight.name} is ${useAorAn(playerToRight.role)} ${playerToRight.role}`;
-
-                        // Permanently allow sniffing in return. It's only fair.
-                        currentPlayer.allowSniffRight = "yes";
-                        currentPlayer.allowSniffRightPermanent = "yes";
-                        this.isSniffRightAllowed = true;
-                        this.lockSniffRight = true;
-                    }
-                    if (playerToLeft.allowSniffRight !== "yes" && playerToRight.allowSniffLeft !== "yes") {
-                        abilityMessage.textContent += "No one wants to be sniffed";
+                    const currentPlayerIndex = this.players.findIndex(player => player.id === currentPlayer.id); 
+                    
+                    if (currentPlayer.sniffResults.length > 0) {
+                        abilityMessage.textContent = currentPlayer.sniffResults.join(' and ');
+                    } else {
+                        abilityMessage.textContent += "You have not successfully sniffed anyone yet";
                     }
 
+                    // Reset the sniffing flag for the current player
+                    currentPlayer.isSniffing = false;
                     this.savePlayersToLocalStorage();
 
                     this.specialEffects();
