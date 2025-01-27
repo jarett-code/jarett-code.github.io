@@ -13,10 +13,10 @@ ol {
 }
 
 html {
-    background-image: url('images/background_full.jpg');    
+    background-image: url('images/village.jpg');    
     background-repeat: no-repeat;
     background-position-x: center;
-    background-position-y: 80px;
+    background-position-y: -160px;
     background-color: black;
     font-family: 'Wolfy', sans-serif;
 }
@@ -35,6 +35,10 @@ body {
 .hamburger-button {    
     border:none; 
     background-color: transparent;
+}
+
+.hamburger-button i {
+    color: whitesmoke;
 }
 
 #hamburger-menu ul {   
@@ -128,7 +132,7 @@ button.deactivated {
 }
 
 button.launch {
-    margin-top: 35px;
+    margin-top: 32px;
 }
 
 #ability-effect {
