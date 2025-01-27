@@ -68,7 +68,7 @@
             </button>
         </div>
 
-        <div class="panel pure-u-1" x-show="isHost">            
+        <div class="panel pure-u-1" x-show="isHost">
             <!-- <p>Will you be using physical cards?</p>
             <button class="pure-button button-primary" @click="isCards = true" :class="{ 'active': isCards }">
                 <i class="fa-solid fa-square-check"></i>
@@ -91,8 +91,11 @@
                     Multi
                 </button>
             </div>
-            <p x-show="!isNetworkGame" class="input-help">All cards will be scanned with this phone.</p>
-            <form class="pure-form" x-show="isNetworkGame" @submit.prevent="createGame()" style="margin: 12px 0; display:flex; justify-items: center;">
+            <p x-show="!isNetworkGame" class="input-help">This device will be shared around the table.</p>
+            <p x-show="isNetworkGame" class="input-help">Multiple devices will be shared, or everyone has their own.</p>
+            <br>
+            <br>
+            <form x-show="isNetworkGame" @submit.prevent="createGame()">               
                 <input type="text" id="networkGameId" placeholder="Village/game name" required x-model="gameName">
                 <p class="input-help">Share this name with friends who wish to join.</p>                
             </form>
