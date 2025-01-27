@@ -7,38 +7,56 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="scripts.js" defer></script>    
+    <script src="scripts.js"></script>    
 </head>
 <body x-data="setup()">
-    <div class="panel">
-        <h1>Scan player cards</h1>
-        <p x-text="gameInfo">Scan the player cards to assign roles.</p>
+
+    <div class="pure-g">
+        <div class="panel pure-u-1">
+            <h1>Scan player cards</h1>
+            <p x-text="gameInfo">Scan the player cards to assign roles.</p>
+        </div>
+
+        <div class="panel pure-u-1" x-show="showStartGameButton">
+            <h4>Are all players & devices ready?</h4>
+            <button class="pure-button button-primary" @click="startTheGame()">
+                <i class="fa-solid fa-circle-play"></i>
+                Start game
+            </button>
+        </div>
+    </div>
+
+    <div id="sniffScreen" x-show="showSniffScreen">
+        <div style="text-align:center;">
+            <p x-text="snifferInstructions" class="input-help" x-show="displaySnifferInstructions" x-transition:leave.opacity.0.duration.4000ms.delay.2000ms></p>
+            <p x-text="sniffInstructions"></p> 
+            <p class="sniffBackResult" x-text="sniffBackResult" x-show="sniffBackResult"></p>
+        </div>     
+        <button id="exit-sniff" class="pure-button button-secondary" @click="exitSniff()">
+            <i class="fa-solid fa-times"></i>
+            Exit
+        </button>
     </div>
 
     <div id="specialAbility" class="special-ability" x-show="specialAbilityVisible">
         <!-- Secondary controls -->
         <div id="role-secondary-controls">
-            <!-- Allow sniff left control -->
-            <button class="pure-button button-secondary sniff" @click="allowSniff(direction='left')" :class="{ 'active': isSniffLeftAllowed }" x-show="showSniffButtons" :disabled="lockSniffLeft" x-transition.opacity.100.duration.2000ms>
-                <i class="fa-solid fa-arrow-left"></i>
-                Allow sniff
+            <!-- Sniff control -->
+             <button class="pure-button button-secondary" x-show="isHoundskeeper" @click="initiateSniff()">
+                <i class="fa-solid fa-nose"></i>
+                Sniff
             </button>
             <!-- Role help control -->
             <button class="pure-button button-secondary" @click="showRoleHelp = !showRoleHelp" :class="{ 'active': showRoleHelp }">
                 <i class="fa-solid fa-question"></i>
                 Help
-            </button>
-            <!-- Allow sniff right control -->
-            <button class="pure-button button-secondary sniff" @click="allowSniff(direction='right')" :class="{ 'active': isSniffRightAllowed }" x-show="showSniffButtons" :disabled="lockSniffRight" x-transition.opacity.100.duration.2000ms>
-                Allow sniff
-                <i class="fa-solid fa-arrow-right"></i>
             </button>            
             <!-- Role help description -->
             <div id="role-help" x-show="showRoleHelp">
                 <p x-text="roleHelp[role]"></p>
                 <p x-show="isHoundskeeper" class="houndskeeper-help">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    Werewolf and Houndskeeper players may sniff out the role of the players beside them. However, the players to be sniffed must first allow it by using the controls above.
+                    Houndskeeper & Werewolf players may sniff out the role of adjacent players. Other players may bluff a sniff.
                 </p>
             </div>
         </div>        
@@ -49,8 +67,8 @@
         <p id="gossip2" x-text="gossip2" x-show="gossip2"></p>
         <div id="ability-effect"></div>
         <!-- The main ability button -->
-         <!-- Removed this: :disabled="getCurrentPlayer().usedAbility" -->
-        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="initializeAndActivate()" x-transition.opacity.scale.30.duration.1500ms>
+        <!-- Removed this: :disabled="getCurrentPlayer().usedAbility" -->
+        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="activateRole()" x-transition.opacity.scale.30.duration.1500ms :disabled="getCurrentPlayer().usedAbility">
             <i class="fa-solid fa-hands-holding-circle"></i>           
         </button>
         <!-- Villager controls -->
@@ -100,11 +118,11 @@
                     "tracker": "You are the Tracker. You can choose which half of the players at the table to track; this will determine if a Werewolf is among them.",
                     "deviant": "You are the Deviant. Your only goal is to trick the town into killing you.",
                     "saint": "You are the Saint. Don't let the Werewolves discover your role. Discreetly guide the townsfolk to victory.",
-                    "gossip": "You are the Gossip. You get 2 clues, the 2nd is available halfway through the game. One clue may be false.",
+                    "gossip": "You are the Gossip. You get 2 clues (the second is available halfway through the game). One clue may be false.",
                     "turncloak": "You are the Turncloak. You serve the Werewolves and must help them win — even if you must die.",
                     "astrologer": "You are the Astrologer. You can determine one role that is definitely in play.",
                     "drifter": "You are the Drifter. You can determine 2 roles not in play. In other words, you identify 2 of the non-player cards from the centre.",
-                    "houndskeeper": "You are the Houndskeeper. You may sniff out the role of either player next to you...if they first allow it."
+                    "houndskeeper": "You are the Houndskeeper. You may sniff out the role of either player next to you...if they allow it. Use the 'Sniff' and pass the device to your target. Afterward, you can get your results using the round button below."
                 },
                 players: [],
                 extraRoles:[],
@@ -115,6 +133,7 @@
                 gossip2: null,
                 holdTimeout: null,
                 gameInfo: 'Scan the player cards to assign roles.',
+                showStartGameButton: false,
                 specialAbilityVisible: false,
                 showMainAbilityButton: true,
                 showWatcherControls: false,
@@ -122,11 +141,12 @@
                 showTrackerButtons: false,
                 isHoundskeeper: false,
                 showRoleHelp: false,
-                showSniffButtons: false,                
-                isSniffLeftAllowed: false,
-                isSniffRightAllowed: false,
-                lockSniffLeft: false,
-                lockSniffRight: false,
+                showSniffScreen: false,
+                sniffResult: '',
+                sniffBackResult: '',
+                snifferInstructions: '',
+                displaySnifferInstructions: true,
+                sniffInstructions: 'Pass the device to the player on your left or right for scanning.',  
                 audio: new Audio('sounds/power_activated.mp3'),
                 role: null,
                 id: null,
@@ -135,10 +155,7 @@
                 getRole() {                    
                     const params = new URLSearchParams(window.location.search);
                     // The role must exist in the roles array
-                    if (!this.roles.includes(params.get('role'))) {
-                        alert('Invalid role scanned');
-                    }
-                    else {
+                    if (this.roles.includes(params.get('role'))) {                        
                         this.role = params.get('role');
                         this.id = params.get('id');
                     }
@@ -167,57 +184,73 @@
                     }
                 },
 
-                allowSniff(direction) {
-                    // Allow a werewolf or houndskeeper from the selected direction to sniff the role of the current player
+                initiateSniff() {
+                    // When the player clicks the sniff button, a screen appears
+                    this.showSniffScreen = true;
 
-                    const currentPlayer = this.getCurrentPlayer();
-                    const adjacentPlayer = this.getAdjacentPlayer(direction);
-                    let sniffText = '';
+                    // Update the player list to indicate that this player is trying to sniff
+                    let currentPlayer = this.getCurrentPlayer();
+                    const leftPlayer = this.getAdjacentPlayer("left");
+                    const rightPlayer = this.getAdjacentPlayer("right");
 
-                    if (direction === 'left') {
-                        // Toggle the sniff attribute                        
-                        if (currentPlayer.allowSniffLeft !== "yes") {                            
-                            currentPlayer.allowSniffLeft = "yes";
-                            this.isSniffLeftAllowed = true;
-                            sniffText = `${adjacentPlayer.name} can now sniff you (if they are a Houndskeeper or Werewolf).`;                            
-                        }
-                        else {
-                            currentPlayer.allowSniffLeft = "no";
-                            this.isSniffLeftAllowed = false;
-                            sniffText = `${adjacentPlayer.name} can no longer sniff you.`;
-                        }                       
-                    }
-                    else if (direction === 'right') {
-                        // Toggle the sniff attribute
-                        if (currentPlayer.allowSniffRight !== "yes") {
-                            currentPlayer.allowSniffRight = "yes";
-                            this.isSniffRightAllowed = true;
-                            sniffText = `${adjacentPlayer.name} can now sniff you (if they are a Werewolf or Houndskeeper).`;
-                        }
-                        else {
-                            currentPlayer.allowSniffRight = "no";
-                            this.isSniffRightAllowed = false;
-                            sniffText = `${adjacentPlayer.name} can no longer sniff you.`;
-                        }
-                    }
-                    
-                    // Delete any existing sniff message elements
-                    const existingSniffMessage = document.querySelector('p.sniff-message');
-                    if (existingSniffMessage) {
-                        existingSniffMessage.remove();
-                    }
-
-                    // Add a new message element to the DOM
-                    sniffMessageElement = document.createElement('p');
-                    sniffMessageElement.textContent = sniffText;
-                    sniffMessageElement.classList.add('sniff-message');
-                    sniffMessageElement.setAttribute('x-data', '{ sniffTextToggle: true }');
-                    sniffMessageElement.setAttribute('x-show', 'sniffTextToggle; setTimeout(() => { sniffTextToggle = false; }, 4000);');
-                    sniffMessageElement.setAttribute('x-transition:leave.duration.2000ms', '');
-                    document.getElementById('role-secondary-controls').appendChild(sniffMessageElement);                   
-
+                    this.snifferInstructions = `(Pass the device to either ${leftPlayer.name} or ${rightPlayer.name})`;
+                    this.displaySnifferInstructions = false;
+                    this.sniffInstructions = `Let ${currentPlayer.name} sniff you?`;
+                    currentPlayer.isSniffing = true;
                     this.savePlayersToLocalStorage();
                 },
+                
+                receiveSniff(sniffingPlayer) {
+                    // When the player receives the device, they can allow the player to sniff them
+
+                    function addSniffResultToPlayer(player, sniffClue) {
+                        // Add the sniff result to the player's sniff results
+                        if (player.sniffResults) {
+                            // Add the sniff clue as long as it's not already in the list
+                            if (!player.sniffResults.includes(sniffClue))
+                                player.sniffResults.push(sniffClue);
+                        }
+                        else {
+                            player.sniffResults = [sniffClue];
+                        }
+                    }  
+
+                    let currentPlayer = this.getCurrentPlayer();
+                    const sniffResult = `${currentPlayer.name} is ${useAorAn(currentPlayer.role)} ${currentPlayer.role}`;
+
+                    // Ensure the player giving the sniff is a Werewolf or Houndskeeper before giving the clue
+                    if (sniffingPlayer.role === 'werewolf' || sniffingPlayer.role === 'houndskeeper') {
+                        addSniffResultToPlayer(sniffingPlayer, sniffResult);
+                    }       
+
+                    // If this player is a Werewolf or Houndskeeper, they can sniff back! Show them the sniffer's role.
+                    if (currentPlayer.role === 'werewolf' || currentPlayer.role === 'houndskeeper') {
+                        this.sniffBackResult = `${sniffingPlayer.name} is ${useAorAn(sniffingPlayer.role)} ${sniffingPlayer.role}`;
+                        addSniffResultToPlayer(currentPlayer, this.sniffBackResult);
+                    }
+
+                    // Mark the player as no longer sniffing
+                    sniffingPlayer.isSniffing = false;  
+                    
+                    localStorage.setItem('players', JSON.stringify(this.players));
+
+                    this.sniffInstructions = `${sniffingPlayer.name} attempted to sniff you! `;
+                    this.sniffInstructions += "Exit and return the device.";
+
+                },
+
+                exitSniff() {
+                    // When the player exits the sniff, the screen disappears
+                    this.showSniffScreen = false;
+
+                    // Remove the sniffing flag from the player
+                    let currentPlayer = this.getCurrentPlayer();
+                    currentPlayer.isSniffing = false;
+                    this.savePlayersToLocalStorage();
+
+                    // Go back to the gameplay page
+                    window.location.href = 'gameplay.html';
+                },               
 
                 assignRole(role) {                    
                     // Get the next unassigned player and assign the role
@@ -246,75 +279,79 @@
                 },
 
                 exit() {
-                    // Return to the gameplay page. If it's a network game, update the remote JSON file
-                    if (localStorage.getItem('isNetworkGame')) {
-                        this.uploadGameData().then(() => {
-                            if (localStorage.getItem('isClient')) {
-                                window.location.href = 'gameplay_client.html';
-                            } else {
-                                window.location.href = 'gameplay.html';
-                            }
-                        });
-                    }
-                    else {
-                        if (localStorage.getItem('isClient')) {
-                            window.location.href = 'gameplay_client.html';
-                        } else {
-                            window.location.href = 'gameplay.html';
-                        }
-                    }                
+                    // Return to the gameplay page.
+                    window.location.href = 'gameplay.html';     
                 },
 
-                uploadGameData() {
+                uploadGameData(requestType="update") {
+                    // Upload game data by saving to a remote JSON file
 
-                    return new Promise((resolve, reject) => {
+                    const gameName = localStorage.getItem('gameName');
 
-                        // Update the remote JSON file with the current players and extra roles
-                        const binId = localStorage.getItem('gameId');
-                        const isSecondHalf = localStorage.getItem('isSecondHalf') || false;
-                        const firstGossip = localStorage.getItem('firstGossip') || null;
-                        const secondGossip = localStorage.getItem('secondGossip') || null;
-                        const isGameOver = localStorage.getItem('isGameOver') || false;                    
+                    const isSecondHalf = localStorage.getItem('isSecondHalf') || false;
+                    const isGameOver = localStorage.getItem('isGameOver') || false;
+                    const isGameStarted = localStorage.getItem('isGameStarted') || false;
+                    const gameStartTime = localStorage.getItem('gameStartTime') || "";
+                    const isScanStarted = localStorage.getItem('isScanStarted') || false;
 
-                        let req = new XMLHttpRequest();
-                        req.onreadystatechange = () => {
-                            if (req.readyState == XMLHttpRequest.DONE) {
-                                console.log(req.responseText);
-                                resolve();
-                                
-                            }
-                        };                    
-
-                        const gameState = {
+                    const gameState = {
                             players: this.players,
                             extraRoles: this.extraRoles,
-                            isGameStarted: true,
+                            isScanStarted: isScanStarted,
+                            isGameStarted: isGameStarted,
+                            gameName: gameName,
+                            gameStartTime: gameStartTime,
+                            isNetworkGame: true,
                             isSecondHalf: isSecondHalf,
-                            firstGossip: firstGossip,
-                            secondGossip: secondGossip,
                             isGameOver: isGameOver
                         };
 
-                        req.open("PUT", `https://api.jsonbin.io/v3/b/${binId}`, true);
-                        req.setRequestHeader("Content-Type", "application/json");
-                        req.setRequestHeader("X-Master-Key", "$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW");
-                        req.send(JSON.stringify(gameState));
+                    console.log(gameState);
 
+                    let headers = {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW'
+                    };
+                    let url = '';
+
+                    // Modify the URL and headers based on the request type
+                    if (requestType === "create") {
+                        url = 'https://api.jsonbin.io/v3/b';
+                        headers['X-Bin-Name'] = gameName;
+                        headers['X-Collection-Id'] = '678ff8e4acd3cb34a8d0b110';
+                    }
+                    else {
+                        const gameId = localStorage.getItem('gameId');
+                        url = `https://api.jsonbin.io/v3/b/${gameId}`;
+                    }
+
+                    fetch(url, {
+                        method: requestType === "create" ? 'POST' : 'PUT',
+                        headers: headers,
+                        body: JSON.stringify(gameState)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        if (requestType === "create") {
+                            // Retrieve the game ID and save it to local storage
+                            localStorage.setItem('gameId', data.metadata.id);
+                        }
                     });
                 },
 
                 startTheGame() {                    
                     // Prepare the game and display a 3-second countdown
-
-                    // If this is a network game, save the players to the remote JSON file
-                    if (localStorage.getItem('isNetworkGame')) {
-                        console.log('Starting game and uploading game data');
-                        this.uploadGameData();
-                    }
                    
                     localStorage.removeItem('isScanStarted');
                     localStorage.setItem('isGameStarted', true);
-                    localStorage.removeItem('remainingTime');                    
+                    localStorage.setItem('gameStartTime', new Date().getTime());
+                    localStorage.setItem('isSecondHalf', false);
+
+                    // If this is a network game, upload the game data to indicate the game has started
+                    if (localStorage.getItem('isNetworkGame') === "true") {
+                        this.uploadGameData("update");
+                    }
 
                     let count = 3;
                     const countdown = setInterval(() => {
@@ -341,57 +378,66 @@
                         return false;
                 },
 
-                downloadNetworkData() {
-                    // Download the game data from the remote JSON file, returning a promise
+                init() {
 
-                    return new Promise((resolve, reject) => {
+                    const isGameOver = localStorage.getItem('isGameOver') === 'true';
+                    const isGameStarted = localStorage.getItem('isGameStarted') === 'true';
+                    const isClient = localStorage.getItem('isClient') === 'true';                    
+                    const isScanStarted = localStorage.getItem('isScanStarted') === 'true';
+                    const gameId = localStorage.getItem('gameId');
 
-                        const binId = localStorage.getItem('gameId');                    
-                        // const RESPONSE_TEXT = {"record":{"gameName":"Gallowstone","players":[{"name":"Jarett","role":"villager","usedAbility":false,"mayorVotes":0,"allowSniffLeft":"no","allowSniffRight":"no","id":"8428"},{"name":"Amanda","role":"werewolf","usedAbility":false,"mayorVotes":0,"allowSniffLeft":"no","allowSniffRight":"no","id":"5174"},{"name":"Jameson","role":"watcher","usedAbility":false,"mayorVotes":0,"allowSniffLeft":"no","allowSniffRight":"no","id":"5508"},{"name":"Greg","role":"saint","usedAbility":false,"mayorVotes":0,"allowSniffLeft":"no","allowSniffRight":"no","id":"1240"}],"extraRoles":["villager","deviant","astrologer"]},"metadata":{"id":"67916562ad19ca34f8f2c727","private":true,"createdAt":"2025-01-22T21:38:42.602Z","collectionId":"678ff8e4acd3cb34a8d0b110","name":"Gallowstone"}};
+                    // If the user is a client (and not the game host)...
+                    if (isClient) {     
+                        // If the client user attempts a scan and the game has not started, check the network game status                
+                        if (!isGameStarted) {
+                            // When Download is complete it will call the initializeGameVariables function
+                            this.downloadGameData();
+                        }
+                        else {
+                            // Call the initializeGameVariables function directly
+                            this.initializeGameVariables();
+                        }
+                    }
+                    else {
+                        // Host use simply initializes the game variables without checking the network game status
+                        this.initializeGameVariables();
+                    }
 
-                        // console.log(RESPONSE_TEXT.record.players);
-                        // console.log(RESPONSE_TEXT.record.extraRoles);
-                        
+                    // If the role scan has started, but the game hasn't, assign roles
+                    if (isScanStarted && !isGameStarted) {
+                        console.log('Role scan detected: assigning roles');
+                        if (this.extraRoles.length < 3) {
+                            this.assignRoles();
+                        }
 
-                        // localStorage.setItem('players', JSON.stringify(RESPONSE_TEXT.record.players));
-                        // localStorage.setItem('extraRoles', JSON.stringify(RESPONSE_TEXT.record.extraRoles));
-                        // alert("made it here");
-                        // this.initializeGameState();
+                        // If all the necessary cards have now been scanned, start the game, otherwise scan the next card
+                        if (this.allRolesAreAssigned() && this.extraRoles.length === 3)
+                            if (localStorage.getItem('isNetworkGame') === "true") {
+                                if (gameId)
+                                    this.uploadGameData("update");
+                                else
+                                    this.uploadGameData("create");
+                                this.showStartGameButton = true;
+                                this.gameInfo = 'All roles have been assigned.';
+                            }
+                            else {
+                                this.startTheGame();
+                            }
+                        else {
+                            window.location.href = 'next_player_to_scan.html';
+                        }
+                    }
 
-                        //the following works:
-                        let req = new XMLHttpRequest();
-                        req.onreadystatechange = () => {
-                            if (req.readyState == XMLHttpRequest.DONE) {
-                                console.log(req.responseText);
-
-                                const RESPONSE_TEXT = JSON.parse(req.responseText);                            
-
-                                console.log(RESPONSE_TEXT.record.players);
-                                console.log(RESPONSE_TEXT.record.extraRoles);   
-                                
-                                // Strip the quotes from the JSON response
-                                const firstGossip = JSON.stringify(RESPONSE_TEXT.record.firstGossip).replace(/['"]+/g, '');
-                                const secondGossip = JSON.stringify(RESPONSE_TEXT.record.secondGossip).replace(/['"]+/g, '');
-                                const isGameStarted = JSON.stringify(RESPONSE_TEXT.record.isGameStarted).replace(/['"]+/g, '');
-                                const isSecondHalf = JSON.stringify(RESPONSE_TEXT.record.isSecondHalf).replace(/['"]+/g, '');
-                                const isGameOver = JSON.stringify(RESPONSE_TEXT.record.isGameOver).replace(/['"]+/g, '');                                
-
-                                localStorage.setItem('players', JSON.stringify(RESPONSE_TEXT.record.players));
-                                localStorage.setItem('extraRoles', JSON.stringify(RESPONSE_TEXT.record.extraRoles));
-                                localStorage.setItem('isGameStarted', isGameStarted);
-                                localStorage.setItem('isSecondHalf', isSecondHalf);
-                                localStorage.setItem('firstGossip', firstGossip);
-                                localStorage.setItem('secondGossip', secondGossip);
-                                localStorage.setItem('isGameOver', isGameOver);                                
-                                resolve();
-                            }                                                 
-                        };
-
-                        req.open("GET", `https://api.jsonbin.io/v3/b/${binId}/latest`, true);
-                        req.setRequestHeader("X-Master-Key", "$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW");
-                        req.send();                        
-                    });
-                },           
+                    // Check if a player beside this one is sniffing and show the sniff screen if so
+                    sniffingPlayer = this.players.find(player => player.isSniffing);
+                    if (sniffingPlayer) {
+                        isAdjacent = sniffingPlayer == this.getAdjacentPlayer("left") || sniffingPlayer == this.getAdjacentPlayer("right");
+                        if (isAdjacent) {
+                            this.showSniffScreen = true;
+                            this.receiveSniff(sniffingPlayer);
+                        }
+                    }                  
+                },     
 
                 assignRoles() {
                         // Assign roles to the players and extra roles array
@@ -405,76 +451,44 @@
                         }                  
                 },
 
-                initializeAndActivate() {
-                    // Initialize the game variables and activate the role's special ability                    
+                downloadGameData() {
+                    // Download the game data from the remote JSON file
 
-                    if (localStorage.getItem('isGameStarted') || localStorage.getItem('isClient')) {                        
-                        // Download any game/player status updates if this is a network game.
-                        if (localStorage.getItem('isNetworkGame')) {
-                            console.log('Network game detected: downloading updates');
-                            
-                            // Wait for the download to complete before initializing the buttons
-                            this.downloadNetworkData().then(() => {
-                                this.initializeGameVariables();
-                                this.activateRole();
-                            });
+                    const gameId = localStorage.getItem('gameId');
+                    fetch(`https://api.jsonbin.io/v3/b/${gameId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW'                          
                         }
-                        else {                            
-                            this.initializeGameVariables();
-                            this.activateRole();
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);                           
+                        localStorage.setItem('players', JSON.stringify(data.record.players));
+                        localStorage.setItem('extraRoles', JSON.stringify(data.record.extraRoles));
+                        localStorage.setItem('isGameStarted', data.record.isGameStarted);
+                        localStorage.setItem('isSecondHalf', data.record.isSecondHalf);
+                        localStorage.setItem('isGameOver', data.record.isGameOver);
+                        localStorage.setItem('gameStartTime', data.record.gameStartTime);
+
+                        // Check again if the game has started after downloading the game data
+                        if (data.record.isGameStarted !== "true") {
+                            // The still game hasn't started, so redirect the user to the gameplay page
+                            window.location.href = 'gameplay.html';
+                            return;
                         }
-                    }
-                },
-
-                init() {
-                    // This determines what happens when the page first loads
-
-                    // if (localStorage.getItem('isGameStarted') || localStorage.getItem('isClient')) {                        
-                    //     // Download any game/player status updates if this is a network game.
-                    //     if (localStorage.getItem('isNetworkGame')) {
-                    //         console.log('Network game detected: downloading updates');
-                            
-                    //         // Wait for the download to complete before initializing the buttons
-                    //         this.downloadNetworkData().then(() => {
-                    //             this.initializeGameVariables();
-                    //         });
-                    //     }
-                    //     else {                            
-                    //         console.log('Local game detected');                           
-                    //         this.initializeGameVariables();
-                    //     }
-                    // }
-
-                    // If the role scan has started, but the game hasn't, assign roles
-                    if (localStorage.getItem('isScanStarted') && !localStorage.getItem('isGameStarted')) {
-                        console.log('Role scan detected: assigning roles');
-                        this.initializeGameVariables();
-                        this.assignRoles();
-
-                        // If all the necessary cards have now been scanned, start the game, otherwise scan the next card
-                        if (this.allRolesAreAssigned() && this.extraRoles.length === 3)
-                            this.startTheGame();
-                        else
-                            window.location.href = 'next_player_to_scan.html';
-                    }
-                    
+                        // Initiallize the game variables now that data is downloaded
+                        this.initializeGameVariables();                  
+                    });
                 },
 
                 initializeGameVariables() {
                     // Set up the Alpine variables used on this page for game controls and rules.
-                    
-                    const isGameOver = localStorage.getItem('isGameOver') === 'true';
-                    const isGameStarted = localStorage.getItem('isGameStarted') === 'true';
-                    const isClient = localStorage.getItem('isClient') === 'true';
 
-                    // If the user is a client (and not the game host)...
-                    if (isClient) {     
-                        // If the game is over or not started, kick the client back to the gameplay page                
-                        if (isGameOver || !isGameStarted) {
-                            window.location.href = 'gameplay_client.html';
-                            return;
-                        }                       
-                    }
+                    console.log('Initializing game variables');
+                    
+                    const isGameStarted = localStorage.getItem('isGameStarted') === 'true';
 
                     // If the game has started, display the special ability screen
                     if (isGameStarted)                        
@@ -486,35 +500,11 @@
                     this.getRole();
                     
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
-                    this.players = this.players.map(player => ({ ...player, usedAbility: false }));
+                    // this.players = this.players.map(player => ({ ...player, usedAbility: false }));
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
                     
                     // Determine if the Houndskeeper is in the game and set the controls accordingly
                     this.isHoundskeeper = this.isHoundskeeperInGame();
-                    if (this.isHoundskeeper)
-                        this.initializeSniffButtons();
-                },
-
-                initializeSniffButtons() {
-                    // Only display these controls if the houndskeeper is in the game.
-                    // Displays buttons in style according to saved state. Adds a delay to protect the player's privacy.                    
-                    
-                        const currentPlayer = this.getCurrentPlayer();                            
-
-                        // Add a 2 second delay before the sniff button statuses are displayed
-                        this.holdTimeout = setTimeout(() => {
-                            this.isSniffLeftAllowed = currentPlayer.allowSniffLeft === "yes";
-                            this.isSniffRightAllowed = currentPlayer.allowSniffRight === "yes";                                
-
-                            // Lock the allow sniff buttons if the player has already sniffed the adjacent players themselves.
-                            if (currentPlayer.allowSniffLeftPermanent === "yes")
-                                this.lockSniffLeft = true;
-
-                            if (currentPlayer.allowSniffRightPermanent === "yes")
-                                this.lockSniffRight = true;                                
-
-                            this.showSniffButtons = true;
-                        }, 2000);
                 },
 
                 activateRole() {
@@ -565,17 +555,7 @@
                         
                         const firstGossip = localStorage.getItem('firstGossip') && localStorage.getItem('firstGossip') !== "null";
                         const secondGossip = localStorage.getItem('secondGossip') && localStorage.getItem('secondGossip') !== "null";
-                        let isSecondHalf = localStorage.getItem('isSecondHalf') === "true";
-
-                        // Determine the data type of isSecondHalf
-                        // if (isSecondHalf === "false") {
-                        //     isSecondHalf = false;
-                        //     alert("isSecondHalf is false");
-                        // } else {
-                        //     isSecondHalf = true;
-                        //     alert("isSecondHalf is true");
-                        // }
-
+                        let isSecondHalf = localStorage.getItem('isSecondHalf') === "true";           
 
                         if (firstGossip && secondGossip) {                            
                             this.gossip1 = localStorage.getItem('firstGossip');
@@ -727,14 +707,14 @@
 
                     console.log("Getting the gossip ability and players");
                     console.log(this.players);
-
-                    const playerList = JSON.parse(localStorage.getItem('players'));
                    
                     // Get all players except the gossip, and shuffle them
-                    const players = playerList.filter(player => player.role !== 'gossip');
+                    let players = this.players;
+                    players = players.filter(player => player.role !== 'gossip');
                     
                     let randomPlayers = players.sort(() => 0.5 - Math.random());        
-                    
+                    console.log("players are:");
+                    console.log(players);
                     console.log("random players are:");
                     console.log(randomPlayers);
 
@@ -879,43 +859,20 @@
 
                 sniffAbility() {
                     // A werewolf or houndskeeper can sniff out the role of either player next to them
-                    const currentPlayer = this.getCurrentPlayer();
+                    let currentPlayer = this.getCurrentPlayer();
                     const abilityMessage = document.getElementById('abilityMessage');
-                    let playerToSniffIndex = null;
 
                     // Get the index of the current player
-                    const currentPlayerIndex = this.players.findIndex(player => player.id === currentPlayer.id);                    
-
-                    // Get the two adjacent players                   
-                    const playerToLeft = this.getAdjacentPlayer("left");
-                    const playerToRight = this.getAdjacentPlayer("right"); 
-                
-                    // Show the roles of the players who consented to be sniffed
-                    if (playerToLeft.allowSniffRight === "yes") {                        
-                        abilityMessage.textContent = `${playerToLeft.name} is ${useAorAn(playerToLeft.role)} ${playerToLeft.role}`;                        
-
-                        // Permanently allow sniffing in return. It's only fair.
-                        currentPlayer.allowSniffLeft = "yes";
-                        currentPlayer.allowSniffLeftPermanent = "yes";
-                        this.isSniffLeftAllowed = true;
-                        this.lockSniffLeft = true;
-                    }
-                    if (playerToLeft.allowSniffRight === "yes" && playerToRight.allowSniffLeft === "yes") {                        
-                        abilityMessage.textContent += " & ";
-                    }
-                    if (playerToRight.allowSniffLeft === "yes") {                        
-                        abilityMessage.textContent += `${playerToRight.name} is ${useAorAn(playerToRight.role)} ${playerToRight.role}`;
-
-                        // Permanently allow sniffing in return. It's only fair.
-                        currentPlayer.allowSniffRight = "yes";
-                        currentPlayer.allowSniffRightPermanent = "yes";
-                        this.isSniffRightAllowed = true;
-                        this.lockSniffRight = true;
-                    }
-                    if (playerToLeft.allowSniffRight !== "yes" && playerToRight.allowSniffLeft !== "yes") {
-                        abilityMessage.textContent += "No one wants to be sniffed";
+                    const currentPlayerIndex = this.players.findIndex(player => player.id === currentPlayer.id); 
+                    
+                    if (currentPlayer.sniffResults.length > 0) {
+                        abilityMessage.textContent = currentPlayer.sniffResults.join(' and ');
+                    } else {
+                        abilityMessage.textContent += "You have not successfully sniffed anyone yet";
                     }
 
+                    // Reset the sniffing flag for the current player
+                    currentPlayer.isSniffing = false;
                     this.savePlayersToLocalStorage();
 
                     this.specialEffects();
@@ -948,14 +905,7 @@
                     abilityMessage.style.display = 'block';
                 }
             }
-        }
-
-        // // If the user exits the page, upload the game data to the remote JSON file
-        // window.addEventListener('beforeunload', function (e) {
-        //     if (localStorage.getItem('isNetworkGame')) {
-        //         setup().uploadGameData();
-        //     }
-        // });
+        }   
     </script>
 </body>
 </html>
