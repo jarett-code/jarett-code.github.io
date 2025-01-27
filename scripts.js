@@ -3,7 +3,7 @@ function endGame() {
 
     // If the game was started, set a games state for the lobby to show all players' roles
     if (localStorage.getItem('isGameStarted')) {
-        localStorage.setItem('showPlayerRoles', 'yes');
+        localStorage.setItem('showPlayerRoles', 'true');
     }
 
     // Reset extra roles and game state variables
@@ -12,10 +12,16 @@ function endGame() {
     localStorage.removeItem('firstGossip');
     localStorage.removeItem('secondGossip');
     localStorage.removeItem('isGameStarted');
-    localStorage.removeItem('remainingTime');    
+    localStorage.removeItem('remainingTime');
     localStorage.removeItem('isGameOver');
     localStorage.removeItem('isScanStarted');
     window.location.href = 'setup.html';
+}
+
+function resetGame() {        
+    // Clear all local storage
+    localStorage.clear();
+    window.location.href = 'index.html';
 }
 
 function skipToVote() {

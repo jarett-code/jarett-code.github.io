@@ -11,6 +11,48 @@
 </head>
 <body x-data="nextCardToScan()">
     <div class="pure-g">
+
+        <!-- Hamburger menu: for mobile devices. Wehn the button is clicked the nav menu options are displayed --> 
+        <div class="pure-u-1 nav-menu" x-data="{ showMenu: false }">
+            <button @click="showMenu = !showMenu" class="hamburger-button">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div id="hamburger-menu" class="pure-menu">                
+                <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top.left>
+                    <li class="pure-menu-item">
+                        <a href="index.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-house"></i></span>
+                            Home
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="players.length > 0 && !isGameStarted && !isScanStarted">
+                        <a href="setup.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-tents"></i></span>
+                            Back to current lobby
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="isGameStarted">
+                        <a href="gameplay.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-play"></i></span>
+                            Back to in-progress game
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="isScanStarted">
+                        <a href="next_player_to_scan.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-users-viewfinder"></i></span>
+                            Back to role setup
+                        </a>
+                    </li>
+                    <li class="pure-menu-item">
+                        <a href="index.html" class="pure-menu-link" @click="resetGame()">
+                            <span><i class="fa-solid fa-bomb"></i></span>
+                           Reset game and app
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
         <div class="panel" x-show="!allplayersHaveRoles">
             <h1>Next player to scan</h1>
             <p>
@@ -30,7 +72,7 @@
             <span>Place card under here.</span>
         </div>
         <!-- TESTING FEATURE: Quick links to character roles -->            
-        <a class="pure-button button-small" href="scan.html?role=villager&id=8428">Villager1</a>
+        <!-- <a class="pure-button button-small" href="scan.html?role=villager&id=8428">Villager1</a>
         <a class="pure-button button-small" href="scan.html?role=villager&id=9510">Villager2</a>
         <a class="pure-button button-small" href="scan.html?role=villager&id=7538">Villager3</a>
         <a class="pure-button button-small" href="scan.html?role=werewolf&id=5174">Werewolf1</a>
@@ -44,7 +86,7 @@
         <a class="pure-button button-small" href="scan.html?role=saint&id=1240">Saint</a>
         <a class="pure-button button-small" href="scan.html?role=tracker&id=9671">Tracker</a>
         <a class="pure-button button-small" href="scan.html?role=gossip&id=5732">Gossip</a>
-        <a class="pure-button button-small" href="scan.html?role=houndskeeper&id=4957">Houndskeeper</a>
+        <a class="pure-button button-small" href="scan.html?role=houndskeeper&id=4957">Houndskeeper</a> -->
 
         <div class="panel clear">
             <div id="end-game-control">
@@ -69,6 +111,8 @@
                 allplayersHaveRoles: false,               
                 currentExtraCardBeingScanned: 1,
                 nextPlayerName: 'Loading...',
+                isScanStarted: localStorage.getItem('isScanStarted') === "true",                
+                isGameStarted: localStorage.getItem('isGameStarted') === "true",
 
                 loadPlayersFromLocalStorage() {
                     const storedPlayers = JSON.parse(localStorage.getItem('players'));
@@ -109,8 +153,11 @@
                         this.allplayersHaveRoles = true;                        
                         this.loadCurrentExtraCardNumber();
 
-                        // IF the user somehow landed on this page after the scanning is complete, redirect them to the gameplay page
-                        if (this.currentExtraCardBeingScanned > 3) {
+                        // IF the user somehow landed on this page after the scanning is complete, redirect them to the proper page
+                        if (this.isScanStarted && this.currentExtraCardBeingScanned > 3 && !this.isGameStarted) {
+                            window.location.href = 'scan.html';
+                        }                        
+                        if (this.isGameStarted) {
                             window.location.href = 'gameplay.html';
                         }
                     }

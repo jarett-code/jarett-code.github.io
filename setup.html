@@ -12,8 +12,53 @@
 </head>
 <body>
     <div class="pure-g" x-data="setup()">
-        <div id="player-container" class="panel pure-u-1">
-            <h1>Enter players</h1>
+         <!-- Hamburger menu: for mobile devices. Wehn the button is clicked the nav menu options are displayed --> 
+        <div class="pure-u-1 nav-menu" x-data="{ showMenu: false }">
+            <button @click="showMenu = !showMenu" class="hamburger-button">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div id="hamburger-menu" class="pure-menu">                
+                <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top.left>
+                    <li class="pure-menu-item">
+                        <a href="index.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-house"></i></span>
+                            Home
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="players.length > 0 && !isGameStarted && !isScanStarted">
+                        <a href="setup.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-tents"></i></span>
+                            Back to current lobby
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="isGameStarted">
+                        <a href="gameplay.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-play"></i></span>
+                            Back to in-progress game
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="isScanStarted">
+                        <a href="next_player_to_scan.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-users-viewfinder"></i></span>
+                            Back to role setup
+                        </a>
+                    </li>
+                    <li class="pure-menu-item">
+                        <a href="index.html" class="pure-menu-link" @click="resetGame()">
+                            <span><i class="fa-solid fa-bomb"></i></span>
+                           Reset game and app
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="panel pure-u-1"  x-show="isClient">
+            <h1>Game results</h1>
+        </div>
+
+        <div id="player-container" class="panel pure-u-1"  x-show="!isClient">
+            <h1>Player lobby</h1>
             <form id="playerForm" @submit.prevent="addPlayer">                                
                 <input type="text" id="playerName" x-model="playerName" placeholder="Player name" required>
                 <button type="submit" class="pure-button button-small">
@@ -23,6 +68,9 @@
             </form>
             <p>Enter players in clock-wise order.</p>
         </div>   
+        <!-- <a href="index.html" class="pure-button button-primary" title="Back to home" style="float:left; margin-right: -40px; margin-top: -10px">
+                <i class="fa-solid fa-house"></i>                
+            </a> -->
         <div class="panel" x-show="players.length > 0">
             <ol id="playerList" x-sort="reorderPlayers">
                 <template x-for="(player, index) in players" :key="index"> 
@@ -30,26 +78,21 @@
                     <li x-sort:item="index" x-bind:x-ignore="true">
                         <span x-text="player.name" class="player-name"></span>
                         <span x-show="showPlayerRoles && player.role">(was <span x-text="toTitleCase(player.role)" class="player-role"></span>)</span>
-                        <button @click="removePlayer(index)">
+                        <button @click="removePlayer(index)" x-show="!isClient">
                             <i class="fa-solid fa-circle-xmark"></i>
                         </button>                        
                     </li>
                 </template>
             </ol>
         </div>
-        <div class="panel clear" x-data="{ networkGame: false, gameName: '' }">
-            <div id="network-game-controls">
-                <button class="pure-button button-primary" @click="networkGame = !networkGame">
-                    <i class="fa-solid fa-globe"></i>
-                    Network game
-                </button>
-                <form id="network-game" x-show="networkGame" @submit.prevent="importPlayersFromRemoteJSON">
-                    <input type="text" id="networkGameId" placeholder="Game name" required x-model="gameName">
-                </form>
-            </div>
-            <a href="next_player_to_scan.html" id="start-game" class="pure-u-1-2 pure-button button-primary" @click="startScan" :disabled="players.length < 3 || (networkGame && !gameName)">
-                <i class="fa-solid fa-circle-play"></i>
-                Start
+        <div class="panel clear">
+            <a href="next_player_to_scan.html" x-show="!isClient" class="pure-button button-primary" @click="startScan" :disabled="players.length < 3">
+                <i class="fa-solid fa-users-viewfinder"></i>
+                Assign roles
+            </a>
+            <a href="gameplay.html" x-show="isClient" class="pure-button button-primary">
+                <i class="fa-solid fa-play"></i>
+                Play again
             </a>
         </div>
     
@@ -59,32 +102,11 @@
         function setup() {
             return {
                 playerName: '',
-                players: [],
-                showPlayerRoles: false,
-
-                importPlayersFromRemoteJSON() {
-                    fetch('https://api.jsonbin.io/v3/qs/678fef21acd3cb34a8d0ac89')
-                        .then(response => response.json())
-                        .then(data => {
-                            this.players = data.record;
-                            this.savePlayersToLocalStorage();
-                        });
-                },    
-
-                updatePlayersToRemoteJSON() {
-                    let req = new XMLHttpRequest();
-
-                    req.onreadystatechange = () => {
-                        if (req.readyState == XMLHttpRequest.DONE) {
-                            console.log(req.responseText);
-                        }
-                    };                    
-                    req.open("POST", "https://api.jsonbin.io/v3/b", true);
-                    req.setRequestHeader("Content-Type", "application/json");
-                    req.setRequestHeader("X-Master-Key", "$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW");
-                    req.setRequestHeader("X-Bin-Name", "werewolf-jay");
-                    req.send('{"sample": "Hello World"}');
-                },
+                players: [],                
+                isClient: localStorage.getItem('isClient') === "true",
+                isScanStarted: localStorage.getItem('isScanStarted') === "true",
+                showPlayerRoles: localStorage.getItem('showPlayerRoles') === "true",
+                isGameStarted: localStorage.getItem('isGameStarted') === "true",
 
                 toTitleCase(str) {
                     return str.replace(/\b\w/g, l => l.toUpperCase());
@@ -127,7 +149,7 @@
                 },
 
                 startScan() {
-                    localStorage.setItem('isScanStarted', "yes");
+                    localStorage.setItem('isScanStarted', "true");
                     localStorage.removeItem('showPlayerRoles');
 
                     const storedPlayers = JSON.parse(localStorage.getItem('players'));
@@ -149,14 +171,10 @@
                 },
                 init() {                    
                     this.loadPlayersFromLocalStorage();
-                    // this.updatePlayersToRemoteJSON();
-                    // this.importCollection();
-                    // this.importFromCollection();
-
-                    this.showPlayerRoles = localStorage.getItem('showPlayerRoles') === "yes";
                 }
             }
-        }    
+        }
+
     </script>
 </body>
 </html>

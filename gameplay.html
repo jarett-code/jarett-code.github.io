@@ -12,7 +12,7 @@
 <body x-data="setup()">
     <div class="pure-g">
         <div class="panel">
-            <h1>Game in progress</h1>
+            <h1 x-text="gameTitle">Game in progress</h1>
             <div id="time-keeper">                
                 <p id="hourglass" x-show="!isRingleaderDone">
                     <i class="fa-solid fa-hourglass-start" x-show="!halfwayPoint && !endPoint"></i>
@@ -26,7 +26,7 @@
                 </p>
                 <p id="timer" x-show="timer" x-text="timer"></p>                
             </div>
-            <h2 x-show="isGameOver">Final vote!</h2>
+            <p x-show="isGameOver">Time's up!</p>
             <p x-text="instruction" x-show="!isRingleaderDone">You may scan a card to activate its ability.</p>
         </div>
         <div id="scan-area" class="panel clear" x-show="!isRingleaderDone">
@@ -34,7 +34,7 @@
             <span>Place card under here.</span>
         </div>
                 <!-- TESTING FEATURE: Quick links to character roles -->            
-                <a class="pure-button button-small" href="scan.html?role=villager&id=8428">Villager1</a>
+                <!-- <a class="pure-button button-small" href="scan.html?role=villager&id=8428">Villager1</a>
                 <a class="pure-button button-small" href="scan.html?role=villager&id=9510">Villager2</a>
                 <a class="pure-button button-small" href="scan.html?role=villager&id=7538">Villager3</a>
                 <a class="pure-button button-small" href="scan.html?role=werewolf&id=5174">Werewolf1</a>
@@ -48,7 +48,7 @@
                 <a class="pure-button button-small" href="scan.html?role=saint&id=1240">Saint</a>
                 <a class="pure-button button-small" href="scan.html?role=tracker&id=9671">Tracker</a>
                 <a class="pure-button button-small" href="scan.html?role=gossip&id=5732">Gossip</a>
-                <a class="pure-button button-small" href="scan.html?role=houndskeeper&id=4957">Houndskeeper</a>
+                <a class="pure-button button-small" href="scan.html?role=houndskeeper&id=4957">Houndskeeper</a> -->
                 <!-- // TESTING FEATURE: Quick links to character roles -->   
         <div id="mayor" class="panel" x-show="isRingleaderDone && mayor">
             <h1><strong><span class="ringleader" x-text="mayor"></span></strong> was appointed ringleader!</h1>
@@ -68,7 +68,7 @@
                     Back to lobby <small>(hold)</small>
                 </button>
             </div>
-            <div id="skip-game-control" x-show="!isRingleaderDone && !isGameOver">
+            <div id="skip-game-control" x-show="!isRingleaderDone && !isGameOver && !isClient">
                 <div class="progress-display">
                     <span class="progress-percent">0%</span>
                     <br>
@@ -88,25 +88,20 @@
                 players: [],
                 timer: 0,
                 timeToDisplay: 0,
-                totalTime: 420,
+                totalTime: 70,
                 ringleaderTime: 60,
                 isRingleaderDone: false,
                 isGameOver: false,
+                isClient: localStorage.getItem('isClient') === 'true',
                 mayor: "",
                 halfwayPoint: false,
                 endPoint: false,
+                gameTitle: "Game in progress",
                 instruction: "You may scan a card to activate its ability.",
                 loadPlayersFromLocalStorage() {
                     const storedPlayers = JSON.parse(localStorage.getItem('players'));
                     if (storedPlayers) {
                         this.players = storedPlayers;
-                    }
-                },        
-                checkGameStartConditions() {
-                    if (this.players.every(player => player.role)) {
-                        localStorage.setItem('isGameStarted', 'yes');
-                    } else {
-                        window.location.href = 'setup.html';
                     }
                 },
                 getMayor() {
@@ -130,44 +125,14 @@
                     }
                 },
 
-                // Upload the halfway point indicatorto the remote JSON file
-                // uploadHalfwayPoint() {
-                //     // If this is a network game, update the remote JSON file to show that the game is halfway done
-                //     if (localStorage.getItem('isNetworkGame')) {
-                //         let req = new XMLHttpRequest();
-                //         const binId = localStorage.getItem('gameId');
-
-                //         req.onreadystatechange = () => {
-                //             if (req.readyState == XMLHttpRequest.DONE) {
-                //                 console.log(req.responseText);
-                //             }
-                //         };
-
-                //         const gameState = {
-                //             players: this.players,
-                //             isSecondHalf: true
-                //         };
-
-                //         req.open("PUT", `https://api.jsonbin.io/v3/b/${binId}`, true);
-                //         req.setRequestHeader("Content-Type", "application/json");
-                //         req.setRequestHeader("X-Master-Key", "$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW");
-                //         req.send(JSON.stringify(gameState));
-                //     }
-                // },
-
                 startTimer() {                    
+                    // The time elapsed is the current time minus the time the game started
+                    const currentTime = new Date().getTime();
+                    const gameStartTime = parseInt(localStorage.getItem('gameStartTime'));
+                    const timeElapsed = currentTime - gameStartTime;
 
-                    // If the game has started, check for a timer
-                    if (localStorage.getItem('isGameStarted') === "yes") {
-
-                        // Create a timer if it doesn't exist, otherwise get the remaining time
-                        if (localStorage.getItem('remainingTime') === null) {                            
-                            remainingTime = this.totalTime;
-                        }
-                        else {                         
-                            remainingTime = localStorage.getItem('remainingTime');                            
-                        }
-                    }
+                    // The remaining time is the total time minus the time elapsed
+                    remainingTime = this.totalTime - Math.floor(timeElapsed / 1000); 
                     
                     let interval = setInterval(() => {
                         if (Alpine.store("gameState").isGameSkipped && !this.isRingleaderDone) {                            
@@ -183,7 +148,6 @@
                                 if (!this.halfwayPoint) {
                                     localStorage.setItem('isSecondHalf', true);
                                     this.halfwayPoint = true;
-                                    this.uploadHalfwayPoint();
                                 }        
                             }
                             else {
@@ -196,7 +160,6 @@
                                 this.isRingleaderDone = true;                                
                             }
                             remainingTime--;
-                            localStorage.setItem('remainingTime', remainingTime);
 
                             // Update the timer display, show the total time minus the ringleader time (if it hasn't been done yet)
                             this.timeToDisplay = remainingTime - (this.isRingleaderDone ? 0 : this.ringleaderTime);
@@ -213,33 +176,10 @@
                 gameOver() {
                     // End the game. Indicate that the game is over and show the final vote instruction.
 
-                    this.instruction = "Time's up. Vote!";
+                    this.instruction = "";
+                    this.gameTitle = "Final vote";
                     this.isGameOver = true;
-                    localStorage.setItem('isGameOver', "yes");
-                    console.log("Game over, man! Game over!");
-
-                    // If this is a network game, update the remote JSON file to show that the game is over
-                    if (localStorage.getItem('isNetworkGame')) {
-                        // If this is a network game, update the remote JSON file to show that the game is over
-                        let req = new XMLHttpRequest();
-                        const binId = localStorage.getItem('gameId');
-
-                        req.onreadystatechange = () => {
-                            if (req.readyState == XMLHttpRequest.DONE) {
-                                console.log(req.responseText);
-                            }
-                        };
-
-                        const gameState = {
-                            players: this.players,                            
-                            isGameOver: this.isGameOver
-                        };
-
-                        req.open("PUT", `https://api.jsonbin.io/v3/b/${binId}`, true);
-                        req.setRequestHeader("Content-Type", "application/json");
-                        req.setRequestHeader("X-Master-Key", "$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW");
-                        req.send(JSON.stringify(gameState));
-                    }
+                    localStorage.setItem('isGameOver', "true");
                 },
 
                 init() {
@@ -248,32 +188,41 @@
                        isGameSkipped: false,
                     });
 
+                    const gameName = localStorage.getItem('gameName');                    
+
+                    if (gameName) {
+                        this.gameTitle = "Welcome to " + gameName;
+                    }
+                    else {
+                        this.gameTitle = "Game in progress";
+                    }
+
                     this.loadPlayersFromLocalStorage();
-                    this.checkGameStartConditions();
 
                     const isGameOver = localStorage.getItem('isGameOver') === 'true';
+                    const isGameStarted = localStorage.getItem('isGameStarted') === "true";
 
                     // Timer function
-                    if (!isGameOver) {
+                    if (isGameStarted && !isGameOver) {
                         this.startTimer(); 
                     }
-                    else {                        
-                        this.instruction = "Game over.";
-                        this.isGameOver = true;
+                    if (!isGameStarted) {                        
+                        this.instruction = "You're ready. Card scanning will work once host starts the game.";
+                    }
+                    else if (isGameOver) {
+                        this.gameTitle = "Game over";
+                        this.instruction = "Time to vote if you haven't already done so.";
+
+                        // Check if the ringleader was appointed
+                        if (!this.isRingleaderDone) {
+                            this.mayor = this.getMayor();
+                            this.endPoint = true;                               
+                            this.isRingleaderDone = true;
+                        }
                     }
                 }                
             }
-        }
-
-        // Save the timer before leaving the page
-        window.addEventListener('beforeunload', () => {
-            if (remainingTime > 0) {
-                localStorage.setItem('remainingTime', remainingTime);
-            }
-            else {
-                localStorage.removeItem('remainingTime');
-            }    
-        });
+        }   
     </script>
 </body>
 </html>
