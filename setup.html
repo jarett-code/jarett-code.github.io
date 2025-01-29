@@ -1,23 +1,26 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Werewolf</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">        
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
+        integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/@alpinejs/sort@3.x.x/dist/cdn.min.js" defer></script> 
+    <script src="https://cdn.jsdelivr.net/npm/@alpinejs/sort@3.x.x/dist/cdn.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="scripts.js" defer></script>
 </head>
+
 <body>
     <div class="pure-g" x-data="setup()">
-         <!-- Hamburger menu: for mobile devices. Wehn the button is clicked the nav menu options are displayed --> 
+        <!-- Hamburger menu: for mobile devices. Wehn the button is clicked the nav menu options are displayed -->
         <div class="pure-u-1 nav-menu" x-data="{ showMenu: false }">
             <button @click="showMenu = !showMenu" class="hamburger-button">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <div id="hamburger-menu" class="pure-menu">                
+            <div id="hamburger-menu" class="pure-menu">
                 <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top.left>
                     <li class="pure-menu-item">
                         <a href="index.html" class="pure-menu-link">
@@ -46,20 +49,20 @@
                     <li class="pure-menu-item">
                         <a href="index.html" class="pure-menu-link" @click="resetGame()">
                             <span><i class="fa-solid fa-bomb"></i></span>
-                           Reset game and app
+                            Reset game and app
                         </a>
                     </li>
                 </ul>
             </div>
         </div>
 
-        <div class="panel pure-u-1"  x-show="isClient">
+        <div class="panel pure-u-1" x-show="isClient">
             <h1>Game results</h1>
         </div>
 
-        <div id="player-container" class="panel pure-u-1"  x-show="!isClient">
+        <div id="player-container" class="panel pure-u-1" x-show="!isClient">
             <h1>Player lobby</h1>
-            <form id="playerForm" @submit.prevent="addPlayer">                                
+            <form id="playerForm" @submit.prevent="addPlayer">
                 <input type="text" id="playerName" x-model="playerName" placeholder="Player name" required>
                 <button type="submit" class="pure-button button-small">
                     <i class="fa-solid fa-plus"></i>
@@ -67,26 +70,28 @@
                 </button>
             </form>
             <p>Enter players in clock-wise order.</p>
-        </div>   
+        </div>
         <!-- <a href="index.html" class="pure-button button-primary" title="Back to home" style="float:left; margin-right: -40px; margin-top: -10px">
                 <i class="fa-solid fa-house"></i>                
             </a> -->
         <div class="panel" x-show="players.length > 0">
             <ol id="playerList" x-sort="reorderPlayers">
-                <template x-for="(player, index) in players" :key="index"> 
+                <template x-for="(player, index) in players" :key="index">
                     <!-- Using x-bind:x-ignore="true" avoids browser console errors in mobile mode for some reason. Sorting code works without it, though -->
                     <li x-sort:item="index" x-bind:x-ignore="true">
                         <span x-text="player.name" class="player-name"></span>
-                        <span x-show="showPlayerRoles && player.role">(was <span x-text="toTitleCase(player.role)" class="player-role"></span>)</span>
+                        <span x-show="showPlayerRoles && player.role">(was <span x-text="toTitleCase(player.role)"
+                                class="player-role"></span>)</span>
                         <button @click="removePlayer(index)" x-show="!isClient">
                             <i class="fa-solid fa-circle-xmark"></i>
-                        </button>                        
+                        </button>
                     </li>
                 </template>
             </ol>
         </div>
         <div class="panel clear">
-            <a href="next_player_to_scan.html" x-show="!isClient" class="pure-button button-primary" @click="startScan" :disabled="players.length < 3">
+            <a href="next_player_to_scan.html" x-show="!isClient" class="pure-button button-primary" @click="startScan"
+                :disabled="players.length < 3">
                 <i class="fa-solid fa-users-viewfinder"></i>
                 Assign roles
             </a>
@@ -95,14 +100,14 @@
                 Play again
             </a>
         </div>
-    
+
     </div>
 
     <script>
         function setup() {
             return {
                 playerName: '',
-                players: [],                
+                players: [],
                 isClient: localStorage.getItem('isClient') === "true",
                 isScanStarted: localStorage.getItem('isScanStarted') === "true",
                 showPlayerRoles: localStorage.getItem('showPlayerRoles') === "true",
@@ -110,15 +115,14 @@
 
                 toTitleCase(str) {
                     return str.replace(/\b\w/g, l => l.toUpperCase());
-                }, 
-                addPlayer() 
-                {
+                },
+                addPlayer() {
                     if (this.playerName) {
-                        this.players.push({ name: this.playerName, role: '', usedAbility: false, mayorVotes: 0, sniffResults: []});
+                        this.players.push({ name: this.playerName, role: '', usedAbility: false, mayorVotes: 0, sniffResults: [] });
                         this.playerName = '';
                         this.savePlayersToLocalStorage();
                     }
-                },                
+                },
                 removePlayer(index) {
                     this.players.splice(index, 1);
                     this.savePlayersToLocalStorage();
@@ -126,21 +130,21 @@
                 savePlayersToLocalStorage() {
                     localStorage.setItem('players', JSON.stringify(this.players));
                 },
-                reorderPlayers(item, position) {              
+                reorderPlayers(item, position) {
                     // Reorder players according to their new position
 
                     let newPlayerList = [];
                     const playerList = document.querySelectorAll('#playerList li');
-                    
+
                     // Get the new order of players from the current dom structure
-                    for (const element of playerList) {                        
+                    for (const element of playerList) {
                         const playerName = element.querySelector('.player-name').textContent;
-                        newPlayerList.push({ name: playerName, role: '', usedAbility: false });                       
-                    }                    
+                        newPlayerList.push({ name: playerName, role: '', usedAbility: false });
+                    }
                     this.players = newPlayerList;
                     localStorage.setItem('players', JSON.stringify(newPlayerList));
                 },
-                
+
                 loadPlayersFromLocalStorage() {
                     const storedPlayers = JSON.parse(localStorage.getItem('players'));
                     if (storedPlayers) {
@@ -156,8 +160,8 @@
                     // Reset all players to their initial state
                     if (storedPlayers) {
                         // Reset all players to their initial state
-                        const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false, mayorVotes: 0, sniffResults: []}));
-                        localStorage.setItem('players', JSON.stringify(resetPlayers));        
+                        const resetPlayers = storedPlayers.map(player => ({ ...player, role: '', usedAbility: false, mayorVotes: 0, sniffResults: [] }));
+                        localStorage.setItem('players', JSON.stringify(resetPlayers));
                     }
 
                     // Reset extra roles and game state variables, if any
@@ -166,10 +170,10 @@
                     localStorage.removeItem('firstGossip');
                     localStorage.removeItem('secondGossip');
                     localStorage.removeItem('isGameStarted');
-                    localStorage.removeItem('remainingTime');    
+                    localStorage.removeItem('remainingTime');
                     localStorage.removeItem('isGameOver');
                 },
-                init() {                    
+                init() {
                     this.loadPlayersFromLocalStorage();
                 }
             }
@@ -177,4 +181,5 @@
 
     </script>
 </body>
+
 </html>

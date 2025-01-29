@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Werewolf</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
+        integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <script src="scripts.js"></script>    
+    <script src="scripts.js"></script>
 </head>
+
 <body x-data="setup()">
 
     <div class="pure-g">
@@ -28,10 +31,11 @@
 
     <div id="sniffScreen" x-show="showSniffScreen">
         <div style="text-align:center;">
-            <p x-text="snifferInstructions" class="input-help" x-show="displaySnifferInstructions" x-transition:leave.opacity.0.duration.4000ms.delay.2000ms></p>
-            <p x-text="sniffInstructions"></p> 
+            <p x-text="snifferInstructions" class="input-help" x-show="displaySnifferInstructions"
+                x-transition:leave.opacity.0.duration.4000ms.delay.2000ms></p>
+            <p x-text="sniffInstructions"></p>
             <p class="sniffBackResult" x-text="sniffBackResult" x-show="sniffBackResult"></p>
-        </div>     
+        </div>
         <button id="exit-sniff" class="pure-button button-secondary" @click="exitSniff()">
             <i class="fa-solid fa-times"></i>
             Exit
@@ -42,24 +46,26 @@
         <!-- Secondary controls -->
         <div id="role-secondary-controls">
             <!-- Sniff control -->
-             <button class="pure-button button-secondary" x-show="isHoundskeeper" @click="initiateSniff()">
+            <button class="pure-button button-secondary" x-show="isHoundskeeper" @click="initiateSniff()">
                 <i class="fa-solid fa-nose"></i>
                 Sniff
             </button>
             <!-- Role help control -->
-            <button class="pure-button button-secondary" @click="showRoleHelp = !showRoleHelp" :class="{ 'active': showRoleHelp }">
+            <button class="pure-button button-secondary" @click="showRoleHelp = !showRoleHelp"
+                :class="{ 'active': showRoleHelp }">
                 <i class="fa-solid fa-question"></i>
                 Help
-            </button>            
+            </button>
             <!-- Role help description -->
             <div id="role-help" x-show="showRoleHelp">
                 <p x-text="roleHelp[role]"></p>
                 <p x-show="isHoundskeeper" class="houndskeeper-help">
                     <i class="fa-solid fa-triangle-exclamation"></i>
-                    Houndskeeper & Werewolf players may sniff out the role of adjacent players. Other players may bluff a sniff.
+                    Houndskeeper & Werewolf players may sniff out the role of adjacent players. Other players may bluff
+                    a sniff.
                 </p>
             </div>
-        </div>        
+        </div>
 
         <p id="abilityMessage" x-text="abilityMessage"></p>
         <!-- Gossip messages -->
@@ -68,8 +74,9 @@
         <div id="ability-effect"></div>
         <!-- The main ability button -->
         <!-- Removed this: :disabled="getCurrentPlayer().usedAbility" -->
-        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="activateRole()" x-transition.opacity.scale.30.duration.1500ms :disabled="getCurrentPlayer().usedAbility">
-            <i class="fa-solid fa-hands-holding-circle"></i>           
+        <button id="useAbilityButton" x-show="showMainAbilityButton" class="pure-button" @click="activateRole()"
+            x-transition.opacity.scale.30.duration.1500ms :disabled="getCurrentPlayer().usedAbility">
+            <i class="fa-solid fa-hands-holding-circle"></i>
         </button>
         <!-- Villager controls -->
         <div id="villagerControls" x-show="showVillagerControls" x-transition.opacity.0.duration.1500ms>
@@ -82,14 +89,16 @@
             <br>
         </div>
         <!-- Tracker controls -->
-        <button id="trackLeftButton" x-show="showTrackerButtons" class="trackerButton pure-button button-primary" @click="trackerAbility(trackDirection='left')">
+        <button id="trackLeftButton" x-show="showTrackerButtons" class="trackerButton pure-button button-primary"
+            @click="trackerAbility(trackDirection='left')">
             <i class="fa-solid fa-arrow-left"></i>
             Track left
         </button>
-        <button id="trackRightButton" x-show="showTrackerButtons" class="trackerButton pure-button button-primary" @click="trackerAbility(trackDirection='right')">
+        <button id="trackRightButton" x-show="showTrackerButtons" class="trackerButton pure-button button-primary"
+            @click="trackerAbility(trackDirection='right')">
             Track right
             <i class="fa-solid fa-arrow-right"></i>
-        </button>      
+        </button>
         <!-- Watcher controls -->
         <div id="watcherControls" x-show="showWatcherControls" x-transition.opacity.0.duration.1500ms>
             <select class="playerSelect" x-model="selectedPlayer" @change="watcherAbility()">
@@ -104,7 +113,7 @@
         <button id="cancel-ability" @click="exit()" class="pure-button button-primary">
             <i class="fa-solid fa-arrow-left"></i>
             Go back
-        </button>        
+        </button>
     </div>
 
     <script>
@@ -125,7 +134,7 @@
                     "houndskeeper": "You are the Houndskeeper. You may sniff out the role of either player next to you...if they allow it. Use the 'Sniff' and pass the device to your target. Afterward, you can get your results using the round button below."
                 },
                 players: [],
-                extraRoles:[],
+                extraRoles: [],
                 playersToView: [],
                 playersToVote: [],
                 abilityMessage: '',
@@ -146,16 +155,16 @@
                 sniffBackResult: '',
                 snifferInstructions: '',
                 displaySnifferInstructions: true,
-                sniffInstructions: 'Pass the device to the player on your left or right for scanning.',  
+                sniffInstructions: 'Pass the device to the player on your left or right for scanning.',
                 audio: new Audio('sounds/power_activated.mp3'),
                 role: null,
                 id: null,
                 selectedPlayer: null,
 
-                getRole() {                    
+                getRole() {
                     const params = new URLSearchParams(window.location.search);
                     // The role must exist in the roles array
-                    if (this.roles.includes(params.get('role'))) {                        
+                    if (this.roles.includes(params.get('role'))) {
                         this.role = params.get('role');
                         this.id = params.get('id');
                     }
@@ -199,7 +208,7 @@
                     currentPlayer.isSniffing = true;
                     this.savePlayersToLocalStorage();
                 },
-                
+
                 receiveSniff(sniffingPlayer) {
                     // When the player receives the device, they can allow the player to sniff them
 
@@ -213,7 +222,7 @@
                         else {
                             player.sniffResults = [sniffClue];
                         }
-                    }  
+                    }
 
                     let currentPlayer = this.getCurrentPlayer();
                     const sniffResult = `${currentPlayer.name} is ${useAorAn(currentPlayer.role)} ${currentPlayer.role}`;
@@ -221,7 +230,7 @@
                     // Ensure the player giving the sniff is a Werewolf or Houndskeeper before giving the clue
                     if (sniffingPlayer.role === 'werewolf' || sniffingPlayer.role === 'houndskeeper') {
                         addSniffResultToPlayer(sniffingPlayer, sniffResult);
-                    }       
+                    }
 
                     // If this player is a Werewolf or Houndskeeper, they can sniff back! Show them the sniffer's role.
                     if (currentPlayer.role === 'werewolf' || currentPlayer.role === 'houndskeeper') {
@@ -230,8 +239,8 @@
                     }
 
                     // Mark the player as no longer sniffing
-                    sniffingPlayer.isSniffing = false;  
-                    
+                    sniffingPlayer.isSniffing = false;
+
                     localStorage.setItem('players', JSON.stringify(this.players));
 
                     this.sniffInstructions = `${sniffingPlayer.name} attempted to sniff you! `;
@@ -250,9 +259,9 @@
 
                     // Go back to the gameplay page
                     window.location.href = 'gameplay.html';
-                },               
+                },
 
-                assignRole(role) {                    
+                assignRole(role) {
                     // Get the next unassigned player and assign the role
                     for (let player of this.players) {
                         if (!player.role) {
@@ -260,11 +269,11 @@
                             player.id = this.id;
                             break;
                         }
-                    }                    
+                    }
                     this.savePlayersToLocalStorage();
                 },
 
-                assignExtraRole() {                    
+                assignExtraRole() {
                     // Push the role to the extraRoles array and save it to local storage
                     this.extraRoles.push(this.getRole());
                     localStorage.setItem('extraRoles', JSON.stringify(this.extraRoles));
@@ -280,10 +289,10 @@
 
                 exit() {
                     // Return to the gameplay page.
-                    window.location.href = 'gameplay.html';     
+                    window.location.href = 'gameplay.html';
                 },
 
-                uploadGameData(requestType="update") {
+                uploadGameData(requestType = "update") {
                     // Upload game data by saving to a remote JSON file
 
                     const gameName = localStorage.getItem('gameName');
@@ -295,16 +304,16 @@
                     const isScanStarted = localStorage.getItem('isScanStarted') || false;
 
                     const gameState = {
-                            players: this.players,
-                            extraRoles: this.extraRoles,
-                            isScanStarted: isScanStarted,
-                            isGameStarted: isGameStarted,
-                            gameName: gameName,
-                            gameStartTime: gameStartTime,
-                            isNetworkGame: true,
-                            isSecondHalf: isSecondHalf,
-                            isGameOver: isGameOver
-                        };
+                        players: this.players,
+                        extraRoles: this.extraRoles,
+                        isScanStarted: isScanStarted,
+                        isGameStarted: isGameStarted,
+                        gameName: gameName,
+                        gameStartTime: gameStartTime,
+                        isNetworkGame: true,
+                        isSecondHalf: isSecondHalf,
+                        isGameOver: isGameOver
+                    };
 
                     console.log(gameState);
 
@@ -330,19 +339,19 @@
                         headers: headers,
                         body: JSON.stringify(gameState)
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                        if (requestType === "create") {
-                            // Retrieve the game ID and save it to local storage
-                            localStorage.setItem('gameId', data.metadata.id);
-                        }
-                    });
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            if (requestType === "create") {
+                                // Retrieve the game ID and save it to local storage
+                                localStorage.setItem('gameId', data.metadata.id);
+                            }
+                        });
                 },
 
-                startTheGame() {                    
+                startTheGame() {
                     // Prepare the game and display a 3-second countdown
-                   
+
                     localStorage.removeItem('isScanStarted');
                     localStorage.setItem('isGameStarted', true);
                     localStorage.setItem('gameStartTime', new Date().getTime());
@@ -363,15 +372,15 @@
                             window.location.href = 'gameplay.html';
                         }
                     }, 1000);
-                  
+
                 },
 
                 isHoundskeeperInGame() {
                     // Return whether the Houndskeeper is in the game
-                    
-                     // Get all the players, plus extra roles
+
+                    // Get all the players, plus extra roles
                     const allRoles = this.players.map(player => player.role).concat(this.extraRoles);
-                        
+
                     if (allRoles.includes('houndskeeper'))
                         return true;
                     else
@@ -382,12 +391,12 @@
 
                     const isGameOver = localStorage.getItem('isGameOver') === 'true';
                     const isGameStarted = localStorage.getItem('isGameStarted') === 'true';
-                    const isClient = localStorage.getItem('isClient') === 'true';                    
+                    const isClient = localStorage.getItem('isClient') === 'true';
                     const isScanStarted = localStorage.getItem('isScanStarted') === 'true';
                     const gameId = localStorage.getItem('gameId');
 
                     // If the user is a client (and not the game host)...
-                    if (isClient) {     
+                    if (isClient) {
                         // If the client user attempts a scan and the game has not started, check the network game status                
                         if (!isGameStarted) {
                             // When Download is complete it will call the initializeGameVariables function
@@ -436,19 +445,19 @@
                             this.showSniffScreen = true;
                             this.receiveSniff(sniffingPlayer);
                         }
-                    }                  
-                },     
+                    }
+                },
 
                 assignRoles() {
-                        // Assign roles to the players and extra roles array
+                    // Assign roles to the players and extra roles array
 
-                        // If all player roles have been assigned, scan the extra roles, otherwise keep scanning the players.
-                        if (this.allRolesAreAssigned()) {
-                            this.assignExtraRole();                           
-                        }
-                        else {
-                            this.assignRole(this.getRole());                            
-                        }                  
+                    // If all player roles have been assigned, scan the extra roles, otherwise keep scanning the players.
+                    if (this.allRolesAreAssigned()) {
+                        this.assignExtraRole();
+                    }
+                    else {
+                        this.assignRole(this.getRole());
+                    }
                 },
 
                 downloadGameData() {
@@ -459,50 +468,50 @@
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW'                          
+                            'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW'
                         }
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);                           
-                        localStorage.setItem('players', JSON.stringify(data.record.players));
-                        localStorage.setItem('extraRoles', JSON.stringify(data.record.extraRoles));
-                        localStorage.setItem('isGameStarted', data.record.isGameStarted);
-                        localStorage.setItem('isSecondHalf', data.record.isSecondHalf);
-                        localStorage.setItem('isGameOver', data.record.isGameOver);
-                        localStorage.setItem('gameStartTime', data.record.gameStartTime);
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            localStorage.setItem('players', JSON.stringify(data.record.players));
+                            localStorage.setItem('extraRoles', JSON.stringify(data.record.extraRoles));
+                            localStorage.setItem('isGameStarted', data.record.isGameStarted);
+                            localStorage.setItem('isSecondHalf', data.record.isSecondHalf);
+                            localStorage.setItem('isGameOver', data.record.isGameOver);
+                            localStorage.setItem('gameStartTime', data.record.gameStartTime);
 
-                        // Check again if the game has started after downloading the game data
-                        if (data.record.isGameStarted !== "true") {
-                            // The still game hasn't started, so redirect the user to the gameplay page
-                            window.location.href = 'gameplay.html';
-                            return;
-                        }
-                        // Initiallize the game variables now that data is downloaded
-                        this.initializeGameVariables();                  
-                    });
+                            // Check again if the game has started after downloading the game data
+                            if (data.record.isGameStarted !== "true") {
+                                // The still game hasn't started, so redirect the user to the gameplay page
+                                window.location.href = 'gameplay.html';
+                                return;
+                            }
+                            // Initiallize the game variables now that data is downloaded
+                            this.initializeGameVariables();
+                        });
                 },
 
                 initializeGameVariables() {
                     // Set up the Alpine variables used on this page for game controls and rules.
 
                     console.log('Initializing game variables');
-                    
+
                     const isGameStarted = localStorage.getItem('isGameStarted') === 'true';
 
                     // If the game has started, display the special ability screen
-                    if (isGameStarted)                        
-                        this.specialAbilityVisible = true; 
+                    if (isGameStarted)
+                        this.specialAbilityVisible = true;
 
                     // Load the necessary variables from local storage
                     this.loadPlayersFromLocalStorage();
                     this.loadExtraRolesFromLocalStorage();
                     this.getRole();
-                    
+
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
                     // this.players = this.players.map(player => ({ ...player, usedAbility: false }));
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
-                    
+
                     // Determine if the Houndskeeper is in the game and set the controls accordingly
                     this.isHoundskeeper = this.isHoundskeeperInGame();
                 },
@@ -514,7 +523,7 @@
                     const currentPlayer = this.getCurrentPlayer();
                     console.log(currentPlayer);
                     const specialAbilityDiv = document.getElementById('specialAbility');
-                    const abilityMessage = document.getElementById('abilityMessage');                    
+                    const abilityMessage = document.getElementById('abilityMessage');
 
                     // Hide the main special ability button
                     this.showMainAbilityButton = false;
@@ -522,15 +531,15 @@
                     if (currentPlayer.usedAbility) {
                         abilityMessage.textContent = 'You have already used your ability';
                         return;
-                    }                    
-                    
-                    if (role === 'tracker') {                                                
+                    }
+
+                    if (role === 'tracker') {
                         // If the role is tracker, display the tracking buttons and hide the main special ability button
                         this.showTrackerButtons = true;
-                    }else if (role === 'watcher') {
+                    } else if (role === 'watcher') {
                         // If the role is watcher, display the watcher controls
                         this.showWatcherControls = true;
-                        this.playersToView = this.players.filter(player => player.role && player.role !== 'watcher');                                        
+                        this.playersToView = this.players.filter(player => player.role && player.role !== 'watcher');
                     } else if (role === 'villager') {
                         // If the role is villager, display the villager controls for voting
                         this.showVillagerControls = true;
@@ -541,7 +550,7 @@
                     } else if (role === 'houndskeeper') {
                         this.sniffAbility();
                     } else if (role === 'saint') {
-                        this.saintAbility();                 
+                        this.saintAbility();
                     } else if (role === 'astrologer') {
                         this.astrologerAbility();
                     } else if (role === 'turncloak') {
@@ -552,26 +561,26 @@
                         // For the gossip, the ability is performed once, and the results are saved for later
                         // So if the the gossip clues have already been created, just display them and don't execute the ability again
                         // Display the first gossip message during the first half of the game and both during the second half                       
-                        
+
                         const firstGossip = localStorage.getItem('firstGossip') && localStorage.getItem('firstGossip') !== "null";
                         const secondGossip = localStorage.getItem('secondGossip') && localStorage.getItem('secondGossip') !== "null";
-                        let isSecondHalf = localStorage.getItem('isSecondHalf') === "true";           
+                        let isSecondHalf = localStorage.getItem('isSecondHalf') === "true";
 
-                        if (firstGossip && secondGossip) {                            
+                        if (firstGossip && secondGossip) {
                             this.gossip1 = localStorage.getItem('firstGossip');
                             // strip the quotes from the string
-                        
-                            if (isSecondHalf) {  
-                                console.log("second half");                             
+
+                            if (isSecondHalf) {
+                                console.log("second half");
                                 this.gossip2 = localStorage.getItem('secondGossip');
                             }
                         } else {
                             console.log("gossip ability activated");
                             this.gossipAbility();
-                        }                      
-                    } else {                       
+                        }
+                    } else {
                         bluffingMessages = [
-                            "Keep a straight face", 
+                            "Keep a straight face",
                             "How will you get out of this one?",
                             "You're bluffing, right?",
                             "In for a penny, in for a pound",
@@ -586,14 +595,14 @@
                             "Do you kiss your mother with those lying lips?",
                             "It's not a lie if you believe it",
                             "The bigger the lie, the more they'll believe it",
-                            "You're a regular Pinocchio",                            
+                            "You're a regular Pinocchio",
                             "All is fair in love and werewolves",
                         ];
                         abilityMessage.textContent = bluffingMessages[Math.floor(Math.random() * bluffingMessages.length)];
 
                         // Activate special effects
                         this.specialEffects();
-                    }               
+                    }
                 },
                 villagerAbility() {
                     // Villagers can appoint a mayor (ringleader), who casts two votes
@@ -614,15 +623,15 @@
                     this.getCurrentPlayer().usedAbility = true;
                     this.savePlayersToLocalStorage();
 
-               },
+                },
                 saintAbility() {
                     // The saint learns the identity of a werewolf
                     const werewolfPlayers = this.players.filter(player => player.role === 'werewolf');
                     const randomWerewolf = werewolfPlayers[Math.floor(Math.random() * werewolfPlayers.length)];
                     abilityMessage.textContent = randomWerewolf ? `${randomWerewolf.name} is a werewolf` : 'No werewolf found';
 
-                    this.specialEffects();  
-                    
+                    this.specialEffects();
+
                     // Mark the player as having used their ability
                     this.getCurrentPlayer().usedAbility = true;
                     this.savePlayersToLocalStorage();
@@ -631,10 +640,10 @@
                 astrologerAbility() {
                     // The astrologer learns if any special roles are present
 
-                     // Get all the special roles in this game except werewolf, villager, and astrologer
-                     const possibleRoles = this.players
-                            .filter(player => player.role && player.role !== 'werewolf' && player.role !== 'villager' && player.role !== 'astrologer')
-                            .map(player => player.role);                    
+                    // Get all the special roles in this game except werewolf, villager, and astrologer
+                    const possibleRoles = this.players
+                        .filter(player => player.role && player.role !== 'werewolf' && player.role !== 'villager' && player.role !== 'astrologer')
+                        .map(player => player.role);
 
                     // Now, pick a random role from the possible roles
                     const randomRole = possibleRoles[Math.floor(Math.random() * possibleRoles.length)];
@@ -649,10 +658,10 @@
 
                 drifterAbility() {
                     // The drifter discovers 2 roles that are not in play
-                    
+
                     // Pick two random roles from the 3 extras
                     const drifterResult = this.extraRoles.sort(() => 0.5 - Math.random()).slice(0, 2);
-                    
+
                     let prefix = "";
                     let clue = "";
 
@@ -668,7 +677,7 @@
                     else {
                         for (drifterResultRole of drifterResult) {
                             if (drifterResultRole == "werewolf" || drifterResultRole == "villager")
-                                prefix = "One less ";                                            
+                                prefix = "One less ";
                             else
                                 prefix = "No ";
 
@@ -707,12 +716,12 @@
 
                     console.log("Getting the gossip ability and players");
                     console.log(this.players);
-                   
+
                     // Get all players except the gossip, and shuffle them
                     let players = this.players;
                     players = players.filter(player => player.role !== 'gossip');
-                    
-                    let randomPlayers = players.sort(() => 0.5 - Math.random());        
+
+                    let randomPlayers = players.sort(() => 0.5 - Math.random());
                     console.log("players are:");
                     console.log(players);
                     console.log("random players are:");
@@ -728,7 +737,7 @@
                     // Prepare the potentially false gossip -- 50% chance
                     const isTrueGossip = Math.random() < 0.5;
 
-                    if (isTrueGossip) {                       
+                    if (isTrueGossip) {
                         maybeGossip = `${maybeRole.name} may be ${useAorAn(maybeRole.role)} ${maybeRole.role}`;
                     } else {
                         const randomRole = randomPlayers.pop().role;
@@ -742,14 +751,14 @@
                     this.gossip1 = randomGossipOrder[0];
 
                     // Only display the second gossip if it's halfway through the game, otherwise save it for later
-                    if (localStorage.getItem('isSecondHalf') && localStorage.getItem('isSecondHalf') === "true") {                        
+                    if (localStorage.getItem('isSecondHalf') && localStorage.getItem('isSecondHalf') === "true") {
                         this.gossip2 = randomGossipOrder[1];
                     }
 
                     // Save both gossips for later since the gossip can use their ability more than once.
                     localStorage.setItem('firstGossip', randomGossipOrder[0]);
                     localStorage.setItem('secondGossip', randomGossipOrder[1]);
-                    
+
                     this.specialEffects();
                 },
 
@@ -772,7 +781,7 @@
                     const roleClues = [selectedPlayer.role, falseRole].sort(() => 0.5 - Math.random());
 
                     if (selectedPlayer) {
-                        abilityMessage.textContent = 
+                        abilityMessage.textContent =
                             `${selectedPlayer.name} is either ${useAorAn(roleClues[0])} ${roleClues[0]} 
                                 or ${useAorAn(roleClues[1])} ${roleClues[1]}`;
                     } else {
@@ -803,7 +812,7 @@
                         // for loop for the number to be tracked
                         for (let i = 1; i <= numberToBeTracked; i++) {
                             let playerToTrackIndex = currentPlayerIndex + i;
-                            if (playerToTrackIndex > totalPlayers-1) {
+                            if (playerToTrackIndex > totalPlayers - 1) {
                                 playerToTrackIndex = playerToTrackIndex - totalPlayers;
                             }
                             playersToTrack.push(this.players[playerToTrackIndex]);
@@ -824,7 +833,7 @@
                     }
                     else {
                         trackedPlayerNamesString = playersToTrack.map(player => player.name).join(' and ');
-                    }                    
+                    }
                     const werewolfWasFound = playersToTrack.find(player => player.role === 'werewolf');
                     abilityMessage.textContent = werewolfWasFound ? `A werewolf hides amongst ${trackedPlayerNamesString}` : `No werewolves amongst ${trackedPlayerNamesString}`;
 
@@ -839,8 +848,8 @@
                 getAdjacentPlayer(direction) {
                     // Get the adjacent player to the current player, given the direction (left or right)
 
-                    const currentPlayer = this.getCurrentPlayer();                    
-                    const currentPlayerIndex = this.players.findIndex(player => player.id === currentPlayer.id);                 
+                    const currentPlayer = this.getCurrentPlayer();
+                    const currentPlayerIndex = this.players.findIndex(player => player.id === currentPlayer.id);
                     let nextPlayerIndex = 0;
 
                     if (direction === "left") {
@@ -863,8 +872,8 @@
                     const abilityMessage = document.getElementById('abilityMessage');
 
                     // Get the index of the current player
-                    const currentPlayerIndex = this.players.findIndex(player => player.id === currentPlayer.id); 
-                    
+                    const currentPlayerIndex = this.players.findIndex(player => player.id === currentPlayer.id);
+
                     if (currentPlayer.sniffResults.length > 0) {
                         abilityMessage.textContent = currentPlayer.sniffResults.join(' and ');
                     } else {
@@ -887,7 +896,7 @@
                     useAbilityButton.classList.add('fade-out');
                     useAbilityButton.addEventListener('transitionend', () => {
                         useAbilityButton.style.display = 'none';
-                    }, { once: true });            
+                    }, { once: true });
 
                     // Animation for tracker controls
                     if (this.role === "tracker") {
@@ -901,11 +910,12 @@
                     abilityEffect.classList.add('growing');
 
                     // Animation for the special ability message
-                    const abilityMessage = document.getElementById('abilityMessage');                    
+                    const abilityMessage = document.getElementById('abilityMessage');
                     abilityMessage.style.display = 'block';
                 }
             }
         }   
     </script>
 </body>
+
 </html>

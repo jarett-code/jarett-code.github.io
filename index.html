@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Werewolf</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
+        integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
+
 <body x-data="setupGame()">
     <div class="pure-g">
 
-        <!-- Hamburger menu: for mobile devices. Wehn the button is clicked the nav menu options are displayed --> 
+        <!-- Hamburger menu: for mobile devices. Wehn the button is clicked the nav menu options are displayed -->
         <div class="pure-u-1 nav-menu" x-data="{ showMenu: false }">
             <button @click="showMenu = !showMenu" class="hamburger-button">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <div id="hamburger-menu" class="pure-menu">                
+            <div id="hamburger-menu" class="pure-menu">
                 <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top.left>
                     <li class="pure-menu-item">
                         <a href="index.html" class="pure-menu-link">
@@ -45,7 +48,7 @@
                     <li class="pure-menu-item">
                         <a href="index.html" class="pure-menu-link" @click="resetGame()">
                             <span><i class="fa-solid fa-bomb"></i></span>
-                           Reset game and app
+                            Reset game and app
                         </a>
                     </li>
                 </ul>
@@ -54,15 +57,17 @@
 
         <div class="panel pure-u-1">
             <h1>Werewolves Within</h1>
-            <p>Gather the townsfolk around the campfire.<br> Will you make it through the night?</p>            
+            <p>Gather the townsfolk around the campfire.<br> Will you make it through the night?</p>
         </div>
 
         <div class="panel pure-u-1 pure-button-group">
-            <button type="button" class="pure-button button-primary" @click="isHost = true" :class="{ 'active': isHost }">
+            <button type="button" class="pure-button button-primary" @click="isHost = true"
+                :class="{ 'active': isHost }">
                 <i class="fa-solid fa-house-user"></i>
                 Create game
             </button>
-            <button type="button" class="pure-button button-primary" @click="isHost = false"  :class="{ 'active': !isHost}">
+            <button type="button" class="pure-button button-primary" @click="isHost = false"
+                :class="{ 'active': !isHost}">
                 <i class="fa-solid fa-people-arrows"></i>
                 Join game
             </button>
@@ -79,13 +84,15 @@
                 No
             </button>
             <p x-show="!isCards"><small>If you want to print some cards for next time, <a href="#">download the cards here</a>.</small></p> -->
-            
+
             <div class="pure-button-group">
-                <button class="pure-button button-primary" @click="isNetworkGame = false" :class="{ 'active': !isNetworkGame }">                    
+                <button class="pure-button button-primary" @click="isNetworkGame = false"
+                    :class="{ 'active': !isNetworkGame }">
                     <i class="fa-solid fa-mobile"></i>
                     Single device
                 </button>
-                <button class="pure-button button-primary" @click="isNetworkGame = true" :class="{ 'active': isNetworkGame }">                     
+                <button class="pure-button button-primary" @click="isNetworkGame = true"
+                    :class="{ 'active': isNetworkGame }">
                     <i style="margin-right:-8px; position:relative; top:6px" class="fa-solid fa-mobile"></i>
                     <i style="position:relative; bottom:2px" class="fa-solid fa-mobile-button"></i>
                     Multi
@@ -95,11 +102,12 @@
             <p x-show="isNetworkGame" class="input-help">Multiple devices will be shared, or everyone has their own.</p>
             <br>
             <br>
-            <form x-show="isNetworkGame" @submit.prevent="createGame()">               
+            <form x-show="isNetworkGame" @submit.prevent="createGame()">
                 <input type="text" id="networkGameId" placeholder="Village/game name" required x-model="gameName">
-                <p class="input-help">Share this name with friends who wish to join.</p>                
+                <p class="input-help">Share this name with friends who wish to join.</p>
             </form>
-            <button class="pure-button button-primary launch" @click="createGame()" :disabled="isNetworkGame && !gameName">
+            <button class="pure-button button-primary launch" @click="createGame()"
+                :disabled="isNetworkGame && !gameName">
                 <i class="fa-solid fa-tents"></i>
                 Launch lobby
             </button>
@@ -113,13 +121,14 @@
             <br>
             <br>
             <ul class="pure-menu-list">
-                <template x-for="(game, index) in networkGameList" :key="index"> 
+                <template x-for="(game, index) in networkGameList" :key="index">
                     <li class="pure-menu-item">
-                        <a x-text="game.snippetMeta.name" class="pure-menu-link" href="#" @click="joinNetworkGame(gameId=game.record, gameName=game.snippetMeta.name)"></a>
+                        <a x-text="game.snippetMeta.name" class="pure-menu-link" href="#"
+                            @click="joinNetworkGame(gameId=game.record, gameName=game.snippetMeta.name)"></a>
                     </li>
                 </template>
             </ul>
-        </div>        
+        </div>
     </div>
 
     <script>
@@ -161,7 +170,7 @@
 
         function setupGame() {
             return {
-                isNetworkGame: false,                
+                isNetworkGame: false,
                 // isCards: false,
                 gameName: '',
                 isHost: true,
@@ -190,30 +199,30 @@
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW'                          
+                            'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW'
                         }
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);                           
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
 
-                        // Strip the quotes from the JSON response
-                        const isGameStarted = JSON.stringify(data.record.isGameStarted).replace(/['"]+/g, '');
-                        const isSecondHalf = JSON.stringify(data.record.isSecondHalf).replace(/['"]+/g, '');
-                        const isGameOver = JSON.stringify(data.record.isGameOver).replace(/['"]+/g, '');                                
+                            // Strip the quotes from the JSON response
+                            const isGameStarted = JSON.stringify(data.record.isGameStarted).replace(/['"]+/g, '');
+                            const isSecondHalf = JSON.stringify(data.record.isSecondHalf).replace(/['"]+/g, '');
+                            const isGameOver = JSON.stringify(data.record.isGameOver).replace(/['"]+/g, '');
 
-                        localStorage.setItem('players', JSON.stringify(data.record.players));
-                        localStorage.setItem('extraRoles', JSON.stringify(data.record.extraRoles));
-                        localStorage.setItem('isGameStarted', isGameStarted);
-                        localStorage.setItem('isSecondHalf', isSecondHalf);
-                        localStorage.setItem('isGameOver', isGameOver); 
+                            localStorage.setItem('players', JSON.stringify(data.record.players));
+                            localStorage.setItem('extraRoles', JSON.stringify(data.record.extraRoles));
+                            localStorage.setItem('isGameStarted', isGameStarted);
+                            localStorage.setItem('isSecondHalf', isSecondHalf);
+                            localStorage.setItem('isGameOver', isGameOver);
 
-                        localStorage.setItem('isNetworkGame', true);
-                        localStorage.setItem('gameId', gameId);
-                        localStorage.setItem('gameName', gameName);
-                        localStorage.setItem('isClient', true);
-                        window.location.href = 'gameplay.html';
-                    });
+                            localStorage.setItem('isNetworkGame', true);
+                            localStorage.setItem('gameId', gameId);
+                            localStorage.setItem('gameName', gameName);
+                            localStorage.setItem('isClient', true);
+                            window.location.href = 'gameplay.html';
+                        });
                 },
 
                 findNetworkGames() {
@@ -222,15 +231,15 @@
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW'                          
+                            'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW'
                         }
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                        this.displayNetworkGames(data);
-                    });
-                    
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            this.displayNetworkGames(data);
+                        });
+
 
                     // RESULT.forEach(record => {
                     //     console.log(record.snippetMeta);
@@ -247,7 +256,8 @@
             }
         }
 
-        
+
     </script>
 </body>
+
 </html>

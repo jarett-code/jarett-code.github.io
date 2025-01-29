@@ -1,23 +1,25 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Werewolf</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">     
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
+        integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <link rel="stylesheet" href="styles.css">
-    <script src="scripts.js" defer></script>    
+    <link rel="stylesheet" href="styles.css" />
+    <script src="scripts.js" defer></script>
 </head>
+
 <body x-data="nextCardToScan()">
     <div class="pure-g">
-
-        <!-- Hamburger menu: for mobile devices. Wehn the button is clicked the nav menu options are displayed --> 
+        <!-- Hamburger menu: for mobile devices. Wehn the button is clicked the nav menu options are displayed -->
         <div class="pure-u-1 nav-menu" x-data="{ showMenu: false }">
             <button @click="showMenu = !showMenu" class="hamburger-button">
                 <i class="fa-solid fa-bars"></i>
             </button>
-            <div id="hamburger-menu" class="pure-menu">                
+            <div id="hamburger-menu" class="pure-menu">
                 <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top.left>
                     <li class="pure-menu-item">
                         <a href="index.html" class="pure-menu-link">
@@ -46,7 +48,7 @@
                     <li class="pure-menu-item">
                         <a href="index.html" class="pure-menu-link" @click="resetGame()">
                             <span><i class="fa-solid fa-bomb"></i></span>
-                           Reset game and app
+                            Reset game and app
                         </a>
                     </li>
                 </ul>
@@ -58,20 +60,21 @@
             <p>
                 <i class="fa-solid fa-expand"></i>
                 Scan <strong><span x-text="nextPlayerName"></span></strong>'s card.
-            </p>               
+            </p>
         </div>
         <div class="panel" x-show="allplayersHaveRoles">
             <h1>Scan the extra role cards</h1>
             <p>
                 <i class="fa-solid fa-expand"></i>
-                Scanning <strong><span x-text="currentExtraCardBeingScanned">1</span></strong> of <strong>3</strong>
-            </p>               
+                Scanning <strong><span x-text="currentExtraCardBeingScanned">1</span></strong> of
+                <strong>3</strong>
+            </p>
         </div>
         <div id="scan-area" class="panel clear">
             <div class="circle" aria-hidden="true"></div>
             <span>Place card under here.</span>
         </div>
-        <!-- TESTING FEATURE: Quick links to character roles -->            
+        <!-- TESTING FEATURE: Quick links to character roles -->
         <!-- <a class="pure-button button-small" href="scan.html?role=villager&id=8428">Villager1</a>
         <a class="pure-button button-small" href="scan.html?role=villager&id=9510">Villager2</a>
         <a class="pure-button button-small" href="scan.html?role=villager&id=7538">Villager3</a>
@@ -92,9 +95,9 @@
             <div id="end-game-control">
                 <div class="progress-display">
                     <span class="progress-percent">0%</span>
-                    <br>
-                    <progress class="progress-bar" max="100" value="0"></progress>            
-                    <br>
+                    <br />
+                    <progress class="progress-bar" max="100" value="0"></progress>
+                    <br />
                 </div>
                 <button class="pure-button">
                     <i class="fa-solid fa-rotate-left"></i>
@@ -102,70 +105,67 @@
                 </button>
             </div>
         </div>
-    </div>
 
-    <script>
-        function nextCardToScan() {
-            return {
-                players: [],
-                allplayersHaveRoles: false,               
-                currentExtraCardBeingScanned: 1,
-                nextPlayerName: 'Loading...',
-                isScanStarted: localStorage.getItem('isScanStarted') === "true",                
-                isGameStarted: localStorage.getItem('isGameStarted') === "true",
+        <script>
+            function nextCardToScan() {
+                return {
+                    players: [],
+                    allplayersHaveRoles: false,
+                    currentExtraCardBeingScanned: 1,
+                    nextPlayerName: "Loading...",
+                    isScanStarted: localStorage.getItem("isScanStarted") === "true",
+                    isGameStarted: localStorage.getItem("isGameStarted") === "true",
 
-                loadPlayersFromLocalStorage() {
-                    const storedPlayers = JSON.parse(localStorage.getItem('players'));
-                    if (storedPlayers) {
-                        this.players = storedPlayers;
-                    }                    
-                },
-                getNextPlayerWithoutRole() {                   
-                    return this.players.find(player => !player.role);
-                },
-                displayNextPlayer() {
-                    // Displays the next player to scan                    
-                    const nextPlayer = this.getNextPlayerWithoutRole();
-                    if (nextPlayer) {
-                        this.nextPlayerName = nextPlayer.name;
-                    }
-                    else {
-                        this.allplayersHaveRoles = true;
-                        this.nextPlayerName = null;
-                    }                    
-                }, 
-                loadCurrentExtraCardNumber() {
-                    // Gets whether with is the first, second or third extra role card to scan
-                    extraRoles = JSON.parse(localStorage.getItem('extraRoles'));
-                    if (extraRoles) {
-                        this.currentExtraCardBeingScanned = extraRoles.length + 1;
-                    }
-                },
-                init() {
-                    this.loadPlayersFromLocalStorage();
-                    
-                    // If a player has no role, display their name. Otherwise display the instruction for scanning extra roles.
-                    const nextPlayer = this.getNextPlayerWithoutRole();
-
-                    if (nextPlayer) {
-                        this.nextPlayerName = nextPlayer.name;
-                    } else {
-                        this.allplayersHaveRoles = true;                        
-                        this.loadCurrentExtraCardNumber();
-
-                        // IF the user somehow landed on this page after the scanning is complete, redirect them to the proper page
-                        if (this.isScanStarted && this.currentExtraCardBeingScanned > 3 && !this.isGameStarted) {
-                            window.location.href = 'scan.html';
-                        }                        
-                        if (this.isGameStarted) {
-                            window.location.href = 'gameplay.html';
+                    loadPlayersFromLocalStorage() {
+                        const storedPlayers = JSON.parse(localStorage.getItem("players"));
+                        if (storedPlayers) {
+                            this.players = storedPlayers;
                         }
-                    }
-                    
-                }
+                    },
+                    getNextPlayerWithoutRole() {
+                        return this.players.find((player) => !player.role);
+                    },
+                    displayNextPlayer() {
+                        // Displays the next player to scan
+                        const nextPlayer = this.getNextPlayerWithoutRole();
+                        if (nextPlayer) {
+                            this.nextPlayerName = nextPlayer.name;
+                        } else {
+                            this.allplayersHaveRoles = true;
+                            this.nextPlayerName = null;
+                        }
+                    },
+                    loadCurrentExtraCardNumber() {
+                        // Gets whether with is the first, second or third extra role card to scan
+                        extraRoles = JSON.parse(localStorage.getItem("extraRoles"));
+                        if (extraRoles) {
+                            this.currentExtraCardBeingScanned = extraRoles.length + 1;
+                        }
+                    },
+                    init() {
+                        this.loadPlayersFromLocalStorage();
+
+                        // If a player has no role, display their name. Otherwise display the instruction for scanning extra roles.
+                        const nextPlayer = this.getNextPlayerWithoutRole();
+
+                        if (nextPlayer) {
+                            this.nextPlayerName = nextPlayer.name;
+                        } else {
+                            this.allplayersHaveRoles = true;
+                            this.loadCurrentExtraCardNumber();
+
+                            // IF the user somehow landed on this page after the scanning is complete, redirect them to the proper page
+                            if (this.isScanStarted && this.currentExtraCardBeingScanned > 3 && !this.isGameStarted) {
+                                window.location.href = "scan.html";
+                            }
+                            if (this.isGameStarted) {
+                                window.location.href = "gameplay.html";
+                            }
+                        }
+                    },
+                };
             }
-        }
-    </script>
-    
+        </script>
 </body>
+
 </html>
