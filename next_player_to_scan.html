@@ -12,15 +12,15 @@
     <script src="scripts.js" defer></script>
 </head>
 
-<body x-data="nextCardToScan()">
+<body x-data="nextCardToScan()" @click="showMenu = false">
     <div class="pure-g">
         <!-- Hamburger menu: for mobile devices. Wehn the button is clicked the nav menu options are displayed -->
-        <div class="pure-u-1 nav-menu" x-data="{ showMenu: false }">
-            <button @click="showMenu = !showMenu" class="hamburger-button">
+        <div class="pure-u-1 nav-menu">
+            <button @click.stop="showMenu = !showMenu" class="hamburger-button">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <div id="hamburger-menu" class="pure-menu">
-                <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top.left>
+                <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top>
                     <li class="pure-menu-item">
                         <a href="index.html" class="pure-menu-link">
                             <span><i class="fa-solid fa-house"></i></span>
@@ -109,6 +109,7 @@
         <script>
             function nextCardToScan() {
                 return {
+                    showMenu: false,
                     players: [],
                     allplayersHaveRoles: false,
                     currentExtraCardBeingScanned: 1,

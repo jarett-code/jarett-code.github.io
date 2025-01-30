@@ -9,18 +9,19 @@
         integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="scripts.js" defer></script>
 </head>
 
-<body x-data="setupGame()">
+<body x-data="setupGame()" @click="showMenu = false">
     <div class="pure-g">
 
-        <!-- Hamburger menu: for mobile devices. Wehn the button is clicked the nav menu options are displayed -->
-        <div class="pure-u-1 nav-menu" x-data="{ showMenu: false }">
-            <button @click="showMenu = !showMenu" class="hamburger-button">
+        <!-- Hamburger menu: for mobile devices. When the button is clicked the nav menu options are displayed -->
+        <div class="pure-u-1 nav-menu">
+            <button @click.stop="showMenu = !showMenu" class="hamburger-button">
                 <i class="fa-solid fa-bars"></i>
             </button>
             <div id="hamburger-menu" class="pure-menu">
-                <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top.left>
+                <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top>
                     <li class="pure-menu-item">
                         <a href="index.html" class="pure-menu-link">
                             <span><i class="fa-solid fa-house"></i></span>
@@ -118,8 +119,7 @@
                 <i class="fa-solid fa-search"></i>
                 Find games
             </button>
-            <br>
-            <br>
+
             <ul class="pure-menu-list">
                 <template x-for="(game, index) in networkGameList" :key="index">
                     <li class="pure-menu-item">
@@ -128,48 +128,14 @@
                     </li>
                 </template>
             </ul>
+            <div aria-hidden="true" :class="{'spinner': isLoading}"></div>
         </div>
     </div>
 
     <script>
-        RESULT = [
-            {
-                "private": true,
-                "snippetMeta": {
-                    "name": "Gallowstone"
-                },
-                "record": "67916562ad19ca34f8f2c727",
-                "createdAt": "2025-01-22T21:38:42.602Z"
-            },
-            {
-                "private": true,
-                "snippetMeta": {
-                    "name": "Jarett's game"
-                },
-                "record": "679042bbacd3cb34a8d0d072",
-                "createdAt": "2025-01-22T00:58:35.430Z"
-            },
-            {
-                "private": true,
-                "snippetMeta": {
-                    "name": "another-game"
-                },
-                "record": "678ffcc9e41b4d34e47c790d",
-                "createdAt": "2025-01-21T20:00:09.220Z"
-            },
-            {
-                "private": true,
-                "snippetMeta": {
-                    "name": "my-game"
-                },
-                "record": "678ffa49ad19ca34f8f22f44",
-                "createdAt": "2025-01-21T19:49:29.803Z"
-            }
-        ]
-
-
         function setupGame() {
             return {
+                showMenu: false,
                 isNetworkGame: false,
                 // isCards: false,
                 gameName: '',
@@ -178,8 +144,9 @@
                 players: localStorage.getItem('players') ? JSON.parse(localStorage.getItem('players')) : [],
                 isClient: localStorage.getItem('isClient') === "true",
                 isScanStarted: localStorage.getItem('isScanStarted') === "true",
-                showPlayerRoles: localStorage.getItem('showPlayerRoles') === "true",
                 isGameStarted: localStorage.getItem('isGameStarted') === "true",
+                showPlayerRoles: localStorage.getItem('showPlayerRoles') === "true",
+                isLoading: false,
 
                 createGame() {
                     if (this.isNetworkGame) {
@@ -226,6 +193,12 @@
                 },
 
                 findNetworkGames() {
+                    // Remove any existing network games
+                    this.networkGameList = [];
+
+                    // Display a loading spinner
+                    this.isLoading = true;
+
                     // Find all network games by fetching the remote JSON file
                     fetch("https://api.jsonbin.io/v3/c/678ff8e4acd3cb34a8d0b110/bins", {
                         method: 'GET',
@@ -237,6 +210,7 @@
                         .then(response => response.json())
                         .then(data => {
                             console.log(data);
+                            this.isLoading = false;
                             this.displayNetworkGames(data);
                         });
 

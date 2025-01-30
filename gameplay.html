@@ -1,30 +1,74 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Werewolf</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
+        integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <script src="scripts.js" defer></script>
 </head>
-<body x-data="setup()">
+
+<body x-data="setup()" @click="showMenu = false">
     <div class="pure-g">
+        <!-- Hamburger menu: for mobile devices. When the button is clicked the nav menu options are displayed -->
+        <div class="pure-u-1 nav-menu">
+            <button @click.stop="showMenu = !showMenu" class="hamburger-button">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div id="hamburger-menu" class="pure-menu">
+                <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top>
+                    <li class="pure-menu-item">
+                        <a href="index.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-house"></i></span>
+                            Home
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="players.length > 0 && !isGameStarted && !isScanStarted">
+                        <a href="setup.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-tents"></i></span>
+                            Back to current lobby
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="isGameStarted">
+                        <a href="gameplay.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-play"></i></span>
+                            Back to in-progress game
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="isScanStarted">
+                        <a href="next_player_to_scan.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-users-viewfinder"></i></span>
+                            Back to role setup
+                        </a>
+                    </li>
+                    <li class="pure-menu-item">
+                        <a href="index.html" class="pure-menu-link" @click="resetGame()">
+                            <span><i class="fa-solid fa-bomb"></i></span>
+                            Reset game and app
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
         <div class="panel">
             <h1 x-text="gameTitle">Game in progress</h1>
-            <div id="time-keeper">                
+            <div id="time-keeper">
                 <p id="hourglass" x-show="!isRingleaderDone">
-                    <i class="fa-solid fa-hourglass-start" x-show="!halfwayPoint && !endPoint"></i>
+                    <i class="fa-solid fa-hourglass-start" x-show="!halfwayPoint"></i>
                     <i class="fa-solid fa-hourglass-half" x-show="halfwayPoint && timeToDisplay > 10"></i>
                     <i class="fa-solid fa-hourglass-end fa-beat-fade" x-show="timeToDisplay && timeToDisplay <= 10"></i>
                 </p>
                 <p id="hourglass-ringleader" class="danger" x-show="isRingleaderDone">
                     <i class="fa-solid fa-hourglass-start" x-show="timeToDisplay >= 40"></i>
-                    <i class="fa-solid fa-hourglass-half" x-show="timeToDisplay > 15 && timeToDisplay < 40"></i>                   
+                    <i class="fa-solid fa-hourglass-half" x-show="timeToDisplay > 15 && timeToDisplay < 40"></i>
                     <i class="fa-solid fa-hourglass-end fa-beat-fade" x-show="timeToDisplay <= 15"></i>
                 </p>
-                <p id="timer" x-show="timer" x-text="timer"></p>                
+                <p id="timer" x-show="timer" x-text="timer"></p>
             </div>
             <p x-show="isGameOver">Time's up!</p>
             <p x-text="instruction" x-show="!isRingleaderDone">You may scan a card to activate its ability.</p>
@@ -33,37 +77,43 @@
             <div class="circle" aria-hidden="true"></div>
             <span>Place card under here.</span>
         </div>
-                <!-- TESTING FEATURE: Quick links to character roles -->            
-                <!-- <a class="pure-button button-small" href="scan.html?role=villager&id=8428">Villager1</a>
-                <a class="pure-button button-small" href="scan.html?role=villager&id=9510">Villager2</a>
-                <a class="pure-button button-small" href="scan.html?role=villager&id=7538">Villager3</a>
-                <a class="pure-button button-small" href="scan.html?role=werewolf&id=5174">Werewolf1</a>
-                <a class="pure-button button-small" href="scan.html?role=werewolf&id=3096">Werewolf2</a>
-                <a class="pure-button button-small" href="scan.html?role=werewolf&id=7143">Werewolf3</a>
-                <a class="pure-button button-small" href="scan.html?role=watcher&id=5508">Watcher</a>
-                <a class="pure-button button-small" href="scan.html?role=drifter&id=9326">Drifter</a>
-                <a class="pure-button button-small" href="scan.html?role=astrologer&id=3863">Astrologer</a>
-                <a class="pure-button button-small" href="scan.html?role=turncloak&id=5310">Turncloak</a>
-                <a class="pure-button button-small" href="scan.html?role=deviant&id=4729">Deviant</a>
-                <a class="pure-button button-small" href="scan.html?role=saint&id=1240">Saint</a>
-                <a class="pure-button button-small" href="scan.html?role=tracker&id=9671">Tracker</a>
-                <a class="pure-button button-small" href="scan.html?role=gossip&id=5732">Gossip</a>
-                <a class="pure-button button-small" href="scan.html?role=houndskeeper&id=4957">Houndskeeper</a> -->
-                <!-- // TESTING FEATURE: Quick links to character roles -->   
-        <div id="mayor" class="panel" x-show="isRingleaderDone && mayor">
-            <h1><strong><span class="ringleader" x-text="mayor"></span></strong> was appointed ringleader!</h1>
-            <p x-show="mayor != 'No one'">They will cast 2 votes.</p>            
+        <!-- TESTING FEATURE: Quick links to character roles -->
+        <!-- <a class="pure-button button-small" href="scan.html?role=villager&id=8428">Villager1</a>
+        <a class="pure-button button-small" href="scan.html?role=villager&id=9510">Villager2</a>
+        <a class="pure-button button-small" href="scan.html?role=villager&id=7538">Villager3</a>
+        <a class="pure-button button-small" href="scan.html?role=werewolf&id=5174">Werewolf1</a>
+        <a class="pure-button button-small" href="scan.html?role=werewolf&id=3096">Werewolf2</a>
+        <a class="pure-button button-small" href="scan.html?role=werewolf&id=7143">Werewolf3</a>
+        <a class="pure-button button-small" href="scan.html?role=watcher&id=5508">Watcher</a>
+        <a class="pure-button button-small" href="scan.html?role=drifter&id=9326">Drifter</a>
+        <a class="pure-button button-small" href="scan.html?role=astrologer&id=3863">Astrologer</a>
+        <a class="pure-button button-small" href="scan.html?role=turncloak&id=5310">Turncloak</a>
+        <a class="pure-button button-small" href="scan.html?role=deviant&id=4729">Deviant</a>
+        <a class="pure-button button-small" href="scan.html?role=saint&id=1240">Saint</a>
+        <a class="pure-button button-small" href="scan.html?role=tracker&id=9671">Tracker</a>
+        <a class="pure-button button-small" href="scan.html?role=gossip&id=5732">Gossip</a>
+        <a class="pure-button button-small" href="scan.html?role=houndskeeper&id=4957">Houndskeeper</a> -->
+        <!-- // TESTING FEATURE: Quick links to character roles -->
+        <div id="mayor" class="panel" x-show="isRingleaderDone">
+            <div x-show="mayor">
+                <h1><strong><span class="ringleader" x-text="mayor"></span></strong> was appointed ringleader!</h1>
+                <p x-show="mayor != 'No one'">They will cast 2 votes.</p>
+            </div>
+            <div x-show="isClient">
+                <h1>Appointing ringleader...</h1>
+                <p>The host device will receive the ringleader result.</p>
+            </div>
         </div>
-        
+
         <div class="panel clear">
             <div id="end-game-control" x-show="isRingleaderDone || isGameOver">
                 <div class="progress-display">
                     <span class="progress-percent">0%</span>
                     <br>
-                    <progress class="progress-bar" max="100" value="0"></progress>            
+                    <progress class="progress-bar" max="100" value="0"></progress>
                     <br>
                 </div>
-                <button type="button" class="pure-button">                    
+                <button type="button" class="pure-button">
                     <i class="fa-solid fa-power-off"></i>
                     Back to lobby <small>(hold)</small>
                 </button>
@@ -72,7 +122,7 @@
                 <div class="progress-display">
                     <span class="progress-percent">0%</span>
                     <br>
-                    <progress class="progress-bar" max="100" value="0"></progress>            
+                    <progress class="progress-bar" max="100" value="0"></progress>
                     <br>
                 </div>
                 <button type="button" class="pure-button">
@@ -80,11 +130,12 @@
                     Skip to ringleader results <small>(hold)</small>
                 </button>
             </div>
-        </div>        
+        </div>
     </div>
     <script>
         function setup() {
             return {
+                showMenu: false,
                 players: [],
                 timer: 0,
                 timeToDisplay: 0,
@@ -92,10 +143,11 @@
                 ringleaderTime: 60,
                 isRingleaderDone: false,
                 isGameOver: false,
+                isGameStarted: localStorage.getItem('isGameStarted') === 'true',
+                isScanStarted: localStorage.getItem('isScanStarted') === 'true',
                 isClient: localStorage.getItem('isClient') === 'true',
                 mayor: "",
                 halfwayPoint: false,
-                endPoint: false,
                 gameTitle: "Game in progress",
                 instruction: "You may scan a card to activate its ability.",
                 loadPlayersFromLocalStorage() {
@@ -106,15 +158,25 @@
                 },
                 getMayor() {
                     // Return the player with the most votes for mayor, ties mean no mayor
+                    console.log("Getting ringleader");
+
+                    // Ensure players are loaded.
+                    this.loadPlayersFromLocalStorage();
+
+                    console.log(this.players);
 
                     // Find the players with mayor votes
                     let candidates = this.players.filter(player => player.mayorVotes > 0);
+
+                    console.log(candidates);
 
                     // Find the highest number of votes
                     const maxVotes = Math.max(...candidates.map(player => player.mayorVotes));
 
                     // Filter the candidates to only those with the most votes
                     candidates = candidates.filter(player => player.mayorVotes === maxVotes);
+
+                    this.isRingleaderDone = true;
 
                     // If there was one person with the most votes, they're the mayor
                     if (candidates.length === 1) {
@@ -125,22 +187,22 @@
                     }
                 },
 
-                startTimer() {                    
+                startTimer() {
                     // The time elapsed is the current time minus the time the game started
                     const currentTime = new Date().getTime();
                     const gameStartTime = parseInt(localStorage.getItem('gameStartTime'));
                     const timeElapsed = currentTime - gameStartTime;
 
                     // The remaining time is the total time minus the time elapsed
-                    remainingTime = this.totalTime - Math.floor(timeElapsed / 1000); 
-                    
+                    remainingTime = this.totalTime - Math.floor(timeElapsed / 1000);
+
                     let interval = setInterval(() => {
-                        if (Alpine.store("gameState").isGameSkipped && !this.isRingleaderDone) {                            
-                            remainingTime = this.ringleaderTime;                             
-                        }                        
+                        if (Alpine.store("gameState").isGameSkipped && !this.isRingleaderDone) {
+                            remainingTime = this.ringleaderTime;
+                        }
                         if (remainingTime <= 0) {
-                            clearInterval(interval);                            
-                            this.gameOver();                        
+                            clearInterval(interval);
+                            this.gameOver();
                         } else {
                             let halfOfRegularTime = (this.totalTime - this.ringleaderTime) / 2;
                             let RegularHalfwayPoint = halfOfRegularTime + this.ringleaderTime;
@@ -148,25 +210,39 @@
                                 if (!this.halfwayPoint) {
                                     localStorage.setItem('isSecondHalf', true);
                                     this.halfwayPoint = true;
-                                }        
+                                }
                             }
                             else {
                                 localStorage.removeItem('isSecondHalf');
                             }
 
-                            if (remainingTime <= this.ringleaderTime && !this.isRingleaderDone) {
-                                this.mayor = this.getMayor();
-                                this.endPoint = true;                               
-                                this.isRingleaderDone = true;                                
-                            }
                             remainingTime--;
 
                             // Update the timer display, show the total time minus the ringleader time (if it hasn't been done yet)
                             this.timeToDisplay = remainingTime - (this.isRingleaderDone ? 0 : this.ringleaderTime);
                             this.updateTimerDisplay(this.timeToDisplay);
-                        }        
+                        }
+
+                        // If it's the last minute or later (ie ringleader time), get the ringleader
+                        if (remainingTime <= this.ringleaderTime && !this.isRingleaderDone) {
+
+                            if (localStorage.getItem("isNetworkGame") === "true" && !this.isClient) {
+                                this.downloadGameData().then(() => {
+                                    console.log("game end. getting ringleader");
+                                    this.mayor = this.getMayor();
+                                    console.log("the mayor is " + this.mayor);
+                                });
+                            }
+                            else if (localStorage.getItem("isNetworkGame") === "true" && this.isClient) {
+                                this.isRingleaderDone = true;
+                            }
+                            else if (localStorage.getItem("isNetworkGame") !== "true") {
+                                this.mayor = this.getMayor();
+                            }
+                        }
+
                     }, 1000);
-                },       
+                },
                 updateTimerDisplay(remainingTime) {
                     const minutes = Math.floor(remainingTime / 60);
                     const seconds = remainingTime % 60;
@@ -180,15 +256,48 @@
                     this.gameTitle = "Final vote";
                     this.isGameOver = true;
                     localStorage.setItem('isGameOver', "true");
+
+                    if (this.isClient) {
+                        this.isRingleaderDone = true;
+                    }
+                },
+
+                downloadGameData() {
+                    // Download the game data from the remote JSON file
+
+                    return new Promise((resolve, reject) => {
+
+                        const gameId = localStorage.getItem('gameId');
+                        fetch(`https://api.jsonbin.io/v3/b/${gameId}`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Master-Key': '$2a$10$xBWoQfSrf2axQlkjjmFea.T0zIXfJ9pznRuSTArk1mGZe6/Fg7cOW'
+                            }
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log(data);
+                                localStorage.setItem('players', JSON.stringify(data.record.players));
+                                localStorage.setItem('extraRoles', JSON.stringify(data.record.extraRoles));
+                                localStorage.setItem('isGameStarted', data.record.isGameStarted);
+                                localStorage.setItem('isSecondHalf', data.record.isSecondHalf);
+                                localStorage.setItem('isGameOver', data.record.isGameOver);
+                                localStorage.setItem('gameStartTime', data.record.gameStartTime);
+
+                                // Resolve the promise
+                                resolve();
+                            });
+                    });
                 },
 
                 init() {
                     // Set up data store for skipped game variable. Alpine.store is used because this variable is updated in a plain js function.
                     Alpine.store("gameState", {
-                       isGameSkipped: false,
+                        isGameSkipped: false,
                     });
 
-                    const gameName = localStorage.getItem('gameName');                    
+                    const gameName = localStorage.getItem('gameName');
 
                     if (gameName) {
                         this.gameTitle = "Welcome to " + gameName;
@@ -204,10 +313,10 @@
 
                     // Timer function
                     if (isGameStarted && !isGameOver) {
-                        this.startTimer(); 
+                        this.startTimer();
                     }
-                    if (!isGameStarted) {                        
-                        this.instruction = "You're ready. Card scanning will work once host starts the game.";
+                    if (!isGameStarted) {
+                        this.instruction = "You're ready!";
                     }
                     else if (isGameOver) {
                         this.gameTitle = "Game over";
@@ -215,14 +324,23 @@
 
                         // Check if the ringleader was appointed
                         if (!this.isRingleaderDone) {
-                            this.mayor = this.getMayor();
-                            this.endPoint = true;                               
-                            this.isRingleaderDone = true;
+
+                            if (localStorage.getItem("isNetworkGame") === "true") {
+                                if (!this.isClient) {
+                                    this.downloadGameData().then(() => {
+                                        this.mayor = this.getMayor();
+                                    });
+                                }
+                            }
+                            else if (localStorage.getItem("isNetworkGame") !== "true") {
+                                this.mayor = this.getMayor();
+                            }
                         }
                     }
-                }                
+                }
             }
         }   
     </script>
 </body>
+
 </html>

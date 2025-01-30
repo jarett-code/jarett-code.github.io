@@ -13,10 +13,10 @@ ol {
 }
 
 html {
-    background-image: url('images/village.jpg');    
+    background-image: url('images/background.jpg');    
     background-repeat: no-repeat;
     background-position-x: center;
-    background-position-y: -160px;
+    background-position-y: 60px;
     background-color: black;
     font-family: 'Wolfy', sans-serif;
 }
@@ -32,19 +32,42 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+.nav-menu {
+    margin-top: 14px;    
+    padding:10px;    
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
 .hamburger-button {    
     border:none; 
     background-color: transparent;
+}
+
+.hamburger-button:hover {
+    cursor: pointer;
 }
 
 .hamburger-button i {
     color: whitesmoke;
 }
 
+#hamburger-menu {
+    margin-top: 28px;
+    position: absolute;
+    z-index:1;
+    text-align: left;
+    width: 400px;
+}
+
 #hamburger-menu ul {   
-    border: 1px solid #ccc;
+    /* border: 1px solid #ccc; */
+    border-top: none;    
     border-radius: 6px;
-    box-shadow: #333 0 0 6px 2px;
+    border-top-left-radius: 0%;
+    border-top-right-radius: 0%;
+    box-shadow: #333 6px 6px 6px 2px;
     background-color: black;
 }
 
@@ -178,15 +201,9 @@ button.launch {
     opacity: 0.8;
     border-radius: 4px;
     padding:20px;
-    margin: 22px 10px;    
+    margin: 24px 12px 0 12px;
     width: 100%;
     text-align: center;
-}
-
-.nav-menu {
-    margin-top: 24px;
-    padding:10px;
-    margin-bottom: -20px;
 }
 
 .panel h1 {
@@ -429,4 +446,29 @@ button.launch {
 /* Add shadow to text */
 #progress-percent {
     text-shadow: 0 0 6px #000
+}
+
+
+.pure-menu-item {
+    padding-top:10px;
+}
+
+/* Ajax spinner */
+.spinner {    
+    border-top: 2px rgb(0, 123, 255) solid;
+    width: 34px;
+    height: 34px;
+    border-radius: 100%;
+    animation: spin 1000ms linear infinite;
+    margin: auto;
+    margin-top: 24px;
+}
+  
+@keyframes spin {
+0% {
+    transform: rotate(0deg);
+}
+100% {
+    transform: rotate(360deg);
+}
 }
