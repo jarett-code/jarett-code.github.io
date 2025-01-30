@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Werewolf</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
+        integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="scripts.js" defer></script>
+</head>
+
+<body x-data="setupGame()" @click="showMenu = false">
+    <div class="pure-g">
+
+        <!-- Hamburger menu: for mobile devices. When the button is clicked the nav menu options are displayed -->
+        <div class="pure-u-1 nav-menu">
+            <button @click.stop="showMenu = !showMenu" class="hamburger-button">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div id="hamburger-menu" class="pure-menu">
+                <ul class="pure-menu-list" x-show="showMenu" x-transition.duration.500ms.scale.0.origin.top>
+                    <li class="pure-menu-item">
+                        <a href="index.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-house"></i></span>
+                            Home
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="players.length > 0 && !isGameStarted && !isScanStarted">
+                        <a href="setup.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-tents"></i></span>
+                            Back to current lobby
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="isGameStarted">
+                        <a href="gameplay.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-play"></i></span>
+                            Back to in-progress game
+                        </a>
+                    </li>
+                    <li class="pure-menu-item" x-show="isScanStarted">
+                        <a href="next_player_to_scan.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-users-viewfinder"></i></span>
+                            Back to role setup
+                        </a>
+                    </li>
+                    <li class="pure-menu-item">
+                        <a href="about.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-circle-info"></i></span>
+                            About this app
+                        </a>
+                    </li>
+                    <li class="pure-menu-item">
+                        <a href="index.html" class="pure-menu-link" @click="resetGame()">
+                            <span><i class="fa-solid fa-bomb"></i></span>
+                            Reset game and app
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="panel pure-u-1 about">
+            <h1>About Werewolves Within</h1>
+            <p>This is a companion app for a Werewolf-style social deduction game* — specifically
+                Werewolves Within. No moderator is needed and there are no player eliminations. Games are quick (and
+                fun!).
+            </p>
+            <p>
+                This version of Werewolves Within is designed to be played in-person and
+                with physical cards, which may be scanned by your phone to unleash your role's special ability.
+            </p>
+            <p>If you'd like your own deck of cards, <a href="docs/WWCards.pdf" title="PDF document of game cards">print
+                    this pdf</a>. Print double-sided (flip on long edge) in order to use QR code scanning.
+                Alternatively, you can affix NFC stickers to the cards and then assign them <a
+                    href="docs/role_links.txt">these URLs</a>.
+            </p>
+
+            <br />
+            <p><small>* Games in which players have hidden or conflicting roles and you must use deduction
+                    and social cues to see through deception — or to deceive others.</small></p>
+        </div>
+
+        <script>
+            function setupGame() {
+                return {
+                    showMenu: false,
+                    isHost: true,
+                    networkGameList: [],
+                    players: localStorage.getItem('players') ? JSON.parse(localStorage.getItem('players')) : [],
+                    isClient: localStorage.getItem('isClient') === "true",
+                    isScanStarted: localStorage.getItem('isScanStarted') === "true",
+                    isGameStarted: localStorage.getItem('isGameStarted') === "true",
+                }
+            };
+
+        </script>
+</body>
+
+</html>

@@ -48,6 +48,12 @@
                         </a>
                     </li>
                     <li class="pure-menu-item">
+                        <a href="about.html" class="pure-menu-link">
+                            <span><i class="fa-solid fa-circle-info"></i></span>
+                            About this app
+                        </a>
+                    </li>
+                    <li class="pure-menu-item">
                         <a href="index.html" class="pure-menu-link" @click="resetGame()">
                             <span><i class="fa-solid fa-bomb"></i></span>
                             Reset game and app
@@ -207,14 +213,39 @@
                 id: null,
                 selectedPlayer: null,
 
+                getRoleWithId(id) {
+                    // Given the non-readable code, return the matching role.
+                    roles = {
+                        "0OO0O00000OOO0OOOOO0OO00OOO0O0": "villager",
+                        "0OO0O0O0O000O0O0O0O0O0O0O0O0O0": "villager",
+                        "0OO0OOO0O0O0O0O0O0O0O0O0O000O0": "villager",
+                        "0OO0O0O0OOOO0OOOOO00O000OOO0O0": "werewolf",
+                        "0OO00O0OO0O00O0O0000O00O00O0O0": "werewolf",
+                        "0OO0O0O0O0O0O0O0O0O0O0O0O0O0O0": "werewolf",
+                        "0OO0OO000OO0O0O0O0000OO00O0OO0": "watcher",
+                        "0OO0O0O0OOO000OO0O00O0O0O0O0O0": "tracker",
+                        "0OO0O00O0O0O0O0O0O0O0O00O0O0O0": "deviant",
+                        "0OO0O00O0O0O0O0O0OO0OO0O0O0O00": "saint",
+                        "0OO0O0O0O0O00O0O0O0O0O00O0O0O0": "gossip",
+                        "0OO00O00O000O0O0O0O0O0O0O0O0O0": "turncloak",
+                        "0OO0O0O0O0O0O0O0O000O0O0O0O0O0": "astrologer",
+                        "0OO0O000O0O0O0O0O0O0O0O0OOO0O0": "drifter",
+                        "0OO0O00OO0O0O0O0O000O0O0O0O0O0": "houndskeeper"
+                    }
+                    return roles[id];
+                },
+
                 getRole() {
                     const params = new URLSearchParams(window.location.search);
+                    const id = params.get('id');
+                    const role = this.getRoleWithId(params.get('id'));
+
                     // The role must exist in the roles array
-                    if (this.roles.includes(params.get('role'))) {
-                        this.role = params.get('role');
-                        this.id = params.get('id');
+                    if (this.roles.includes(role)) {
+                        this.role = role;
+                        this.id = id;
                     }
-                    return this.role;
+                    return role;
                 },
 
                 getCurrentPlayer() {
