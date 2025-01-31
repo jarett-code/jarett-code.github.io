@@ -92,10 +92,11 @@
 
     <div id="specialAbility" class="special-ability" x-show="specialAbilityVisible">
         <!-- Secondary controls -->
-        <div id="role-secondary-controls">
+        <div id="role-secondary-controls" x-data="{sniffBluff: false}">
             <!-- Sniff control -->
-            <button class="pure-button button-secondary" x-show="isHoundskeeper" @click="initiateSniff()">
-                <i class="fa-solid fa-nose"></i>
+            <button class="pure-button button-secondary" x-show="isHoundskeeper" :class="{ 'active': sniffBluff }"
+                @click="canSniff ? initiateSniff() : sniffBluff = !sniffBluff">
+                <i class="fa-solid fa-paw"></i>
                 Sniff
             </button>
             <!-- Role help control -->
@@ -104,6 +105,17 @@
                 <i class="fa-solid fa-question"></i>
                 Help
             </button>
+            <div x-show="sniffBluff">
+                <p>Your role can't sniff. Bluff this ability?</p>
+                <button class="pure-button button-primary" @click="sniffBluff = false">
+                    <i class="fa-solid fa-times"></i>
+                    No
+                </button>
+                <button class="pure-button button-primary" @click="initiateSniff()">
+                    <i class="fa-solid fa-check"></i>
+                    Yes
+                </button>
+            </div>
             <!-- Role help description -->
             <div id="role-help" x-show="showRoleHelp">
                 <p x-text="roleHelp[role]"></p>
@@ -180,7 +192,7 @@
                     "tracker": "You are the Tracker. You can choose which half of the players at the table to track; this will determine if a Werewolf is among them.",
                     "deviant": "You are the Deviant. Your only goal is to trick the town into killing you.",
                     "saint": "You are the Saint. Don't let the Werewolves discover your role. Discreetly guide the townsfolk to victory.",
-                    "gossip": "You are the Gossip. You get 2 clues (the second is available halfway through the game). One clue may be false.",
+                    "gossip": "You are the Gossip. You get 2 clues (the second comes halfway through the game). One clue may be false.",
                     "turncloak": "You are the Turncloak. You serve the Werewolves and must help them win — even if you must die.",
                     "astrologer": "You are the Astrologer. You can determine one role that is definitely in play.",
                     "drifter": "You are the Drifter. You can determine 2 roles not in play. In other words, you identify 2 of the non-player cards from the centre.",
@@ -205,6 +217,7 @@
                 showVillagerControls: false,
                 showTrackerButtons: false,
                 isHoundskeeper: false,
+                canSniff: false,
                 showRoleHelp: false,
                 showSniffScreen: false,
                 sniffResult: '',
@@ -596,6 +609,7 @@
                     this.loadPlayersFromLocalStorage();
                     this.loadExtraRolesFromLocalStorage();
                     this.getRole();
+                    this.canSniff = this.role === 'werewolf' || this.role === 'houndskeeper';
 
                     // Temporarily reset the usedAbility flag for all players TESTING!!!!!!!!!!!!!!!!!!!!!!!
                     // this.players = this.players.map(player => ({ ...player, usedAbility: false }));

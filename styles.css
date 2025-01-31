@@ -64,7 +64,8 @@ body {
     position: absolute;
     z-index:1;
     text-align: left;
-    width: 400px;
+    width: 90%;
+    max-width: 400px;
 }
 
 #hamburger-menu ul {   
@@ -248,6 +249,7 @@ button.launch {
     margin-bottom: 8px;
     font-weight: 600;
     color: #333;
+    margin: 10px 15px;
 }
 
 #playerList button {
