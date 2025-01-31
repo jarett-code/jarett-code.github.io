@@ -128,10 +128,14 @@
         </button>
         <!-- Villager controls -->
         <div id="villagerControls" x-show="showVillagerControls" x-transition.opacity.0.duration.1500ms>
-            <select class="playerSelect" x-model="selectedPlayer" @change="villagerAbility()">
+            <select class="playerSelect" x-model="selectedVotePlayer" @change="villagerAbility()">
                 <option value="">Select a player</option>
                 <template x-for="player in playersToVote" :key="player.name">
-                    <option x-text="player.name" :value="player.id"></option>
+                    <option x-text="player === currentlyVotedPlayer ? player.name + '✅': player.name" :value="player.id"
+                        :disabled="player == currentlyVotedPlayer"></option>
+                </template>
+                <template x-if="currentlyVotedPlayer">
+                    <option value="removeVote">(Remove vote)</option>
                 </template>
             </select>
             <br>
@@ -149,7 +153,7 @@
         </button>
         <!-- Watcher controls -->
         <div id="watcherControls" x-show="showWatcherControls" x-transition.opacity.0.duration.1500ms>
-            <select class="playerSelect" x-model="selectedPlayer" @change="watcherAbility()">
+            <select class="playerSelect" x-model="selectedWatchPlayer" @change="watcherAbility()">
                 <option value="">Select a player</option>
                 <template x-for="player in playersToView" :key="player.name">
                     <option x-text="player.name" :value="player.name"></option>
@@ -211,7 +215,9 @@
                 audio: new Audio('sounds/power_activated.mp3'),
                 role: null,
                 id: null,
-                selectedPlayer: null,
+                selectedVotePlayer: null,
+                currentlyVotedPlayer: null,
+                selectedWatchPlayer: null,
 
                 getRoleWithId(id) {
                     // Given the non-readable code, return the matching role.
@@ -626,6 +632,7 @@
                     } else if (role === 'villager') {
                         // If the role is villager, display the villager controls for voting
                         this.showVillagerControls = true;
+                        this.currentlyVotedPlayer = this.players.find(player => player.mayorVotes && player.mayorVotes.includes(currentPlayer.id));
                         this.playersToVote = this.players.filter(player => player.role && player.id !== currentPlayer.id);
                     } else if (role === 'werewolf' && this.isHoundskeeper) {
                         // If the role is werewolf or houndskeeper, activate the sniff ability
@@ -688,50 +695,59 @@
                     }
                 },
                 villagerAbility() {
-                    // Villagers can appoint a ringleader, who casts two votes at the end
+                    // Villagers can appoint a ringleader, who casts two votes at the end  
 
-                    let selectedPlayerName = this.players.find(player => player.id === this.selectedPlayer).name;
+                    // Hide the dropdown after the ability is used
+                    this.showVillagerControls = false;
 
-                    // Download the network data
+                    // Sandwich the villager vote between a download and upload of network data
                     if (localStorage.getItem('isNetworkGame') === "true") {
                         this.downloadGameData().then(() => {
-                            this.getCurrentPlayer().usedAbility = true;
-                            // Add a vote to the tally of whoever the player chose
-                            let selectedPlayer = this.players.find(player => player.id === this.selectedPlayer);
-                            selectedPlayer.mayorVotes++;
 
-                            console.log("The selected player is:");
-                            console.log(selectedPlayer.name);
-
-                            console.log("the players are now:");
-                            console.log(this.players);
-
-                            this.savePlayersToLocalStorage();
+                            // Perform the villager vote
+                            this.villagerVote();
 
                             // Upload the network data
                             this.uploadGameData("update");
                         });
                     }
                     else {
-                        // TODO: eliminate repitition here
-                        // Mark the player as having used their ability
-                        this.getCurrentPlayer().usedAbility = true;
-                        this.savePlayersToLocalStorage();
+                        // Simply perform the villager vote
+                        this.villagerVote();
+                    }
+                },
+                villagerVote() {
+                    const currentPlayer = this.getCurrentPlayer();
+                    const selectedPlayer = this.players.find(player => player.id === this.selectedVotePlayer);
 
-                        // Add a vote to the tally of whoever the player chose
-                        let selectedPlayer = this.players.find(player => player.id === this.selectedPlayer);
-                        selectedPlayer.mayorVotes++;
-                        this.savePlayersToLocalStorage();
+                    console.log(this.selectedVotePlayer);
+
+                    // Find the player who has a mayorVotes object that contains the current player's id
+                    let previouslyVotedPlayer = this.players.find(player => player.mayorVotes && player.mayorVotes.includes(currentPlayer.id));
+
+                    // Remove this player's id from the other player's vote tally
+                    if (previouslyVotedPlayer) {
+                        console.log("Removing vote from previously voted player");
+                        previouslyVotedPlayer.mayorVotes = previouslyVotedPlayer.mayorVotes.filter(vote => vote !== currentPlayer.id);
                     }
 
-                    // Remove the dropdown after the ability is used
-                    this.showVillagerControls = false;
+                    // Add the player's id to the tally of whomever the player chose
+                    if (selectedPlayer) {
+                        selectedPlayer.mayorVotes.push(currentPlayer.id);
+                    }
 
-                    abilityMessage.textContent = `You have voted ${selectedPlayerName} for ringleader`;
+                    this.savePlayersToLocalStorage();
 
+                    // Create the ability message
+                    if (previouslyVotedPlayer && selectedPlayer) {
+                        abilityMessage.textContent = `Changed ringleader vote from ${previouslyVotedPlayer.name} to ${selectedPlayer.name}`;
+                    } else if (previouslyVotedPlayer && this.selectedVotePlayer === "removeVote") {
+                        abilityMessage.textContent = `Ringleader vote removed`;
+                    } else {
+                        abilityMessage.textContent = `You have voted ${selectedPlayer.name} for ringleader`;
+                    }
                     // Activate special effects
                     this.specialEffects();
-
                 },
                 saintAbility() {
                     // The saint learns the identity of a werewolf
@@ -873,7 +889,7 @@
 
                 watcherAbility() {
                     // The watcher can view the role of another player. They'll get a true and false clue.
-                    const selectedPlayer = this.players.find(player => player.name === this.selectedPlayer);
+                    const selectedPlayer = this.players.find(player => player.name === this.selectedWatchPlayer);
                     const abilityMessage = document.getElementById('abilityMessage');
 
                     // Get all roles except the watcher and the selected player
