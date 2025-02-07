@@ -225,7 +225,7 @@
                 snifferInstructions: '',
                 displaySnifferInstructions: true,
                 sniffInstructions: 'Pass the device to the player on your left or right for scanning.',
-                audio: new Audio('sounds/power_activated.mp3'),
+                // audio: new Audio('sounds/power_activated.mp3'),
                 role: null,
                 id: null,
                 selectedVotePlayer: null,
@@ -1027,8 +1027,8 @@
                 },
 
                 specialEffects() {
-                    // Play the sound effect            
-                    this.audio.play();
+                    // Play the sound effect
+                    // this.audio.play();
 
                     // Animation for main controls
                     const useAbilityButton = document.getElementById('useAbilityButton');
